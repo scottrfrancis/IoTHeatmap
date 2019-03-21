@@ -64,8 +64,7 @@ class App extends Component {
   handleTopicMessage(message) {
     console.log("handling message", message)
     
-    var d = new Date()
-    message["Time"] = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds()
+    message["Time"] = new Date().toLocaleTimeString()
     
     this.setState({
       messages: [message, ...this.state.messages.slice(0, 9)],
