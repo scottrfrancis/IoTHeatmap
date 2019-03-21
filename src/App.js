@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import logo from './logo.svg'
 import './App.css'
 
 import Amplify, {Auth, PubSub} from 'aws-amplify'
@@ -14,8 +13,6 @@ import AWS from 'aws-sdk'
 
 // retrieve temporary AWS credentials and sign requests
 Auth.configure(awsconfig);
-// send analytics events to Amazon Pinpoint
-// Analytics.configure(awsconfig);
 
 Amplify.configure(awsconfig);
 Amplify.addPluggable( new AWSIoTProvider(awsiot) )
@@ -28,7 +25,8 @@ class App extends Component {
     super(props);
     this.state = {
       things: [],
-      messages: []
+      messages: [],
+      metrics: []
     }
 
     this.handleTopicMessage = this.handleTopicMessage.bind(this)
@@ -56,10 +54,7 @@ class App extends Component {
     })
     
     PubSub.subscribe('freertos/demos/sensors/#').subscribe({
-      next: data => {
-        console.log('Message received', data)
-        this.handleTopicMessage(data.value)
-      },
+      next: data => this.handleTopicMessage(data.value),
       error: error => console.log(error),
       close: () => console.log('Done')
     })
@@ -68,34 +63,30 @@ class App extends Component {
   
   handleTopicMessage(message) {
     console.log("handling message", message)
+    
     this.setState({
-      messages: [...this.state.messages, message]
+      messages: [message, ...this.state.messages.slice(0, 9)],
+      metrics: [...new Set([...this.state.metrics, ...Object.keys(message)])]
     })
   }
 
   render() {
-    var messageBlock = ""
-    var m, i = 0
-    
-    while ((m = this.state.messages.pop()) !== undefined) {
-      messageBlock +=  JSON.stringify(m)
-    }
-    
     return (
       <div className="App">
-        <header>
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
+
         <div>
-          {this.state.things.length} Things:<br/>
+ 
+          <br />
           <table>
+            <thead>
+              <tr>
+                {this.state.metrics.map((m, j) => {return(<td key={j}>{m}</td>)})}
+              </tr>
+            </thead>
             <tbody>
-              {this.state.things.map((t,i) => {return(<tr key={i}><td>{t.thingName}</td></tr>)})}
+              {this.state.messages.map((t,i) => {return(<tr key={i}>{this.state.metrics.map((m, j) => {return(<td key={j}>{t[m]}</td>)})}</tr>)})}
             </tbody>
           </table>
-          <br/>
-          { messageBlock }
         </div>
       </div>
     );
