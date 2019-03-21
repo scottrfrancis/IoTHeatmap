@@ -26,7 +26,7 @@ class App extends Component {
     this.state = {
       things: [],
       messages: [],
-      metrics: []
+      metrics: ["Time"]
     }
 
     this.handleTopicMessage = this.handleTopicMessage.bind(this)
@@ -63,6 +63,9 @@ class App extends Component {
   
   handleTopicMessage(message) {
     console.log("handling message", message)
+    
+    var d = new Date()
+    message["Time"] = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds()
     
     this.setState({
       messages: [message, ...this.state.messages.slice(0, 9)],
