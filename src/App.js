@@ -10,6 +10,7 @@ import awsiot from './aws-iot'
 
 import AWS from 'aws-sdk'
 
+const MaxSamples = 50
 
 // retrieve temporary AWS credentials and sign requests
 Auth.configure(awsconfig);
@@ -67,7 +68,7 @@ class App extends Component {
     message["Time"] = new Date().toLocaleTimeString()
     
     this.setState({
-      messages: [message, ...this.state.messages.slice(0, 9)],
+      messages: [message, ...this.state.messages.slice(0, MaxSamples - 1)],
       metrics: [...new Set([...this.state.metrics, ...Object.keys(message)])]
     })
   }
