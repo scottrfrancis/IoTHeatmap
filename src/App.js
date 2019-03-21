@@ -111,7 +111,7 @@ class App extends Component {
   render() {
     let xLabels = this.state.metrics.slice(1, this.state.metrics.length)
     xLabels.splice(xLabels.indexOf(Board_id_label), 1)
-    const yLabels = this.state.things.map((t) => {return (t.thingName)})
+    const yLabels = this.state.things.map((t) => {return (t.thingName)}).sort()
 
     let data = []
     for (var i = 0; i < yLabels.length; i++) {
