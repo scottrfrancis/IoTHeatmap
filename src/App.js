@@ -34,6 +34,7 @@ class App extends Component {
       metrics: ["Time"]
     }
 
+    this.getAllTheThings = this.getAllTheThings.bind(this)
     this.handleTopicMessage = this.handleTopicMessage.bind(this)
     this.getLatestBoardMetrics = this.getLatestBoardMetrics.bind(this)
     this.normalizeMetric = this.normalizeMetric.bind(this)
@@ -48,24 +49,34 @@ class App extends Component {
       })
     })
 
-    var iot = new AWS.Iot()
-    iot.listThings({
-    }, (err, data) => {
-      if (err) console.log(err)
-      else {
-        console.log(data)
-        this.setState({
-          things: data.things
-        })
-      }
+    this.getAllTheThings()
+    
+    // subscribe to thing connect events
+    PubSub.subscribe('$aws/events/presence/connected/#').subscribe({
+      next: data => this.getAllTheThings()
     })
     
+    // subscribe to thing updates
     PubSub.subscribe('freertos/demos/sensors/#').subscribe({
       next: data => this.handleTopicMessage(data.value),
       error: error => console.log(error),
       close: () => console.log('Done')
     })
     
+  }
+  
+  getAllTheThings() {
+    new AWS.Iot()
+      .listThings({
+      }, (err, data) => {
+        if (err) console.log(err)
+        else {
+          console.log(data)
+          this.setState({
+            things: data.things
+          })
+        }
+      })
   }
   
   handleTopicMessage(message) {
@@ -102,15 +113,16 @@ class App extends Component {
     const message = this.state.messages.map((m) => (m[Board_id_label] === board_id) && m).reduce((a,c) => a || c, undefined)
     // console.log("for " + board_id + " using " + JSON.stringify(message))
     
-    const metrics = new Array(labels.length)
+    let metrics = new Array(labels.length)
       .fill(0)
-      .map((l, i) => this.normalizeMetric(message, labels[i]))
+    if (message !== false)
+      metrics = metrics.map((l, i) => this.normalizeMetric(message, labels[i]))
       
     return metrics
   }
 
   render() {
-    let xLabels = this.state.metrics.slice(1, this.state.metrics.length)
+    const xLabels = this.state.metrics.slice(1, this.state.metrics.length)
     xLabels.splice(xLabels.indexOf(Board_id_label), 1)
     const yLabels = this.state.things.map((t) => {return (t.thingName)}).sort()
 
