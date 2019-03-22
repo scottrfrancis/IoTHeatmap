@@ -84,22 +84,23 @@ class App extends Component {
       'Temp': [1.0, 0],
       'Hum': [1.0, 0],
       'Press': [0.1 , -260],
-      'Accel_X': [0.02, -2500],
-      'Accel_Y': [0.02, -2500],
-      'Accel_Z': [0.02, -2500],
-      'Gyro_X': [0.001, -50000],
-      'Gyro_Y': [0.001, -50000],
-      'Gyro_Z': [0.001, -50000],
-      'Magn_X': [0.001, -5000],
-      'Magn_Y': [0.001, -5000],
-      'Magn_Z': [0.001, -5000]
+      'Accel_X': [0.02, 2500],
+      'Accel_Y': [0.02, 2500],
+      'Accel_Z': [0.02, 2500],
+      'Gyro_X': [0.001, 50000],
+      'Gyro_Y': [0.001, 50000],
+      'Gyro_Z': [0.001, 50000],
+      'Magn_X': [0.1, 360],
+      'Magn_Y': [0.1, 360],
+      'Magn_Z': [0.1, 360]
     }
     
-    return (message[label] + normalize[label][1])*normalize[label][0]
+    return ((message[label] || 0) + normalize[label][1])*normalize[label][0]
   }
 
   getLatestBoardMetrics(board_id, labels) {
     const message = this.state.messages.map((m) => (m[Board_id_label] === board_id) && m).reduce((a,c) => a || c, undefined)
+    // console.log("for " + board_id + " using " + JSON.stringify(message))
     
     const metrics = new Array(labels.length)
       .fill(0)
@@ -113,12 +114,14 @@ class App extends Component {
     xLabels.splice(xLabels.indexOf(Board_id_label), 1)
     const yLabels = this.state.things.map((t) => {return (t.thingName)}).sort()
 
-    let data = []
+    const data = []
     for (var i = 0; i < yLabels.length; i++) {
-      var row = this.getLatestBoardMetrics(yLabels[i], xLabels)
-      data = [...data, row]
+      const row = this.getLatestBoardMetrics(yLabels[i], xLabels)
+      // console.log("row: " + row)
+      data.push(row)
     }
-  
+    // console.log("data is " + JSON.stringify(data))
+
     return (
       <div className="App">
         <div>
