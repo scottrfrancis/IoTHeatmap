@@ -106,7 +106,16 @@ class App extends Component {
       'Magn_Z': [0.1, 360]
     }
     
-    return ((message[label] || 0) + normalize[label][1])*normalize[label][0]
+    const m = Number( (((message[label] || 0) + normalize[label][1])*normalize[label][0]).toFixed(1) )
+    if (m > 100)
+      return 100;
+    else if (m < 0)
+      return 0;
+  
+    return m;
+
+    // return ((((m > 100) ? 100 : m) < 0) ? 0 : m)
+
   }
 
   getLatestBoardMetrics(board_id, labels) {
@@ -136,12 +145,16 @@ class App extends Component {
 
     return (
       <div className="App">
-        <div>
+        <div className="HeatMap">
         <HeatMap
           xLabels={xLabels}
           yLabels={yLabels}
           data={data}
           yLabelWidth = {150}
+          background = {"#ee9900"}
+          squares={true}
+          height={75}
+          cellRender={value => value && `${value}%`}
         />
         </div>
         <div>
