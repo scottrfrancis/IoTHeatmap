@@ -31,3 +31,36 @@
     transform: rotate(360deg);
   }
 }
+
+table {
+  background-color: #555555;
+  font-size: 10px;
+  border: none;
+  border-collapse: collapse
+}
+
+thead {
+  background-color: cyan;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #dddddd;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  font-family: sans-serif;
+  font-weight: bolder;
+}
+
+td {
+  font-family: monospace;
+}

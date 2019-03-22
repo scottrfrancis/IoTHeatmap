@@ -149,7 +149,7 @@ class App extends Component {
           <table>
             <thead>
               <tr>
-                {this.state.metrics.map((m, j) => {return(<td key={j}>{m}</td>)})}
+                {this.state.metrics.map((m, j) => {return(<th key={j}>{m}</th>)})}
               </tr>
             </thead>
             <tbody>
