@@ -7,6 +7,7 @@ import awsiot from './aws-iot'
 import AWS from 'aws-sdk'
 import HeatMap from 'react-heatmap-grid'
 
+
 const MaxSamples = 50
 const Board_id_label = "Board_id"
 
@@ -24,9 +25,8 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      things: [],
-      messages: [],
-      metrics: ["Time"]
+      messages: [],       // reverse-time ordered FIFO of last MaxSamples 
+      metrics: ["Time"]   // metrics accummulates all keys ever seen in the messages -- but Time is first measurement
     }
 
     this.handleTopicMessage = this.handleTopicMessage.bind(this)
@@ -34,8 +34,7 @@ class App extends Component {
     this.displayMetric = this.displayMetric.bind(this)
     
     Auth.currentCredentials()
-      .then(credentials => console.log(credentials))
-    
+
     AWS.config.update({
       region: awsconfig.aws_cognito_region,
       credentials: new AWS.CognitoIdentityCredentials({
@@ -43,25 +42,20 @@ class App extends Component {
       })
     })
 
-    // subscribe to thing updates
+    // subscribe to thing updates for any publishers
     PubSub.subscribe('freertos/demos/sensors/#').subscribe({
       next: data => this.handleTopicMessage(data.value),
-      error: error => console.log(error),
-      close: () => console.log('Done')
     })
     
   }
   
   handleTopicMessage(message) {
-    console.log("handling message", message)
-    
-    const thing = message[Board_id_label]
     message["Time"] = new Date().toLocaleTimeString()
+    console.log(`received message ${JSON.stringify(message)}`)
     
     this.setState({
       messages: [message, ...this.state.messages.slice(0, MaxSamples - 1)],
       metrics: [...new Set([...this.state.metrics, ...Object.keys(message)])],
-      things: [...new Set([...this.state.things, thing])]
     })
   }
   
@@ -81,7 +75,7 @@ class App extends Component {
       'Magn_Z': "mGa"
     }
     
-    return( value + " " + units[label])
+    return(`${value} ${units[label]}`)
   }
 
   getLatestBoardMetrics(board_id, labels) {
@@ -96,12 +90,13 @@ class App extends Component {
   }
 
   render() {
-    const xLabels = this.state.metrics.slice(1, this.state.metrics.length)
+    const xLabels = this.state.metrics.slice(1, this.state.metrics.length)    // remove 'Time'
     xLabels.splice(xLabels.indexOf(Board_id_label), 1)
-    const yLabels = this.state.things.map((t) => {return t}).sort()
+
+    const yLabels = [...new Set(this.state.messages.map((m) => m[Board_id_label]))].sort()
 
     const data = []
-    for (var i = 0; i < yLabels.length; i++) {
+    for (let i = 0; i < yLabels.length; i++) {
       const row = this.getLatestBoardMetrics(yLabels[i], xLabels)
       data.push(row)
     }
@@ -121,7 +116,7 @@ class App extends Component {
           <table>
             <thead>
               <tr>
-                {this.state.metrics.map((m, j) => {return(<th key={j}>{m}</th>)})}
+                {(this.state.metrics.length > 1) && this.state.metrics.map((m, j) => {return(<th key={j}>{m}</th>)})}
               </tr>
             </thead>
             <tbody>
