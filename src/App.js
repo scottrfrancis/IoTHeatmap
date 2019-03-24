@@ -1,19 +1,15 @@
 import React, { Component } from 'react'
 import './App.css'
-
 import Amplify, {Auth, PubSub} from 'aws-amplify'
-
 import awsconfig from './aws-exports'
-
 import { AWSIoTProvider } from '@aws-amplify/pubsub/lib/Providers'
 import awsiot from './aws-iot'
-
 import AWS from 'aws-sdk'
-
 import HeatMap from 'react-heatmap-grid'
 
 const MaxSamples = 50
 const Board_id_label = "Board_id"
+
 
 // retrieve temporary AWS credentials and sign requests
 Auth.configure(awsconfig);
@@ -22,7 +18,6 @@ Amplify.configure(awsconfig);
 Amplify.addPluggable( new AWSIoTProvider(awsiot) )
 
 PubSub.configure()
-
 
 
 class App extends Component {
@@ -34,11 +29,10 @@ class App extends Component {
       metrics: ["Time"]
     }
 
-    this.getAllTheThings = this.getAllTheThings.bind(this)
     this.handleTopicMessage = this.handleTopicMessage.bind(this)
     this.getLatestBoardMetrics = this.getLatestBoardMetrics.bind(this)
-    this.normalizeMetric = this.normalizeMetric.bind(this)
-
+    this.displayMetric = this.displayMetric.bind(this)
+    
     Auth.currentCredentials()
       .then(credentials => console.log(credentials))
     
@@ -49,13 +43,6 @@ class App extends Component {
       })
     })
 
-    this.getAllTheThings()
-    
-    // subscribe to thing connect events
-    PubSub.subscribe('$aws/events/presence/connected/#').subscribe({
-      next: data => this.getAllTheThings()
-    })
-    
     // subscribe to thing updates
     PubSub.subscribe('freertos/demos/sensors/#').subscribe({
       next: data => this.handleTopicMessage(data.value),
@@ -65,96 +52,68 @@ class App extends Component {
     
   }
   
-  getAllTheThings() {
-    new AWS.Iot()
-      .listThings({
-      }, (err, data) => {
-        if (err) console.log(err)
-        else {
-          console.log(data)
-          this.setState({
-            things: data.things
-          })
-        }
-      })
-  }
-  
   handleTopicMessage(message) {
     console.log("handling message", message)
     
+    const thing = message[Board_id_label]
     message["Time"] = new Date().toLocaleTimeString()
     
     this.setState({
       messages: [message, ...this.state.messages.slice(0, MaxSamples - 1)],
-      metrics: [...new Set([...this.state.metrics, ...Object.keys(message)])]
+      metrics: [...new Set([...this.state.metrics, ...Object.keys(message)])],
+      things: [...new Set([...this.state.things, thing])]
     })
   }
   
-  normalizeMetric(message, label) {
-    const normalize = { // label: [scale, offset]
-      'Temp': [1.0, 0],
-      'Hum': [1.0, 0],
-      'Press': [0.1 , -260],
-      'Accel_X': [0.02, 2500],
-      'Accel_Y': [0.02, 2500],
-      'Accel_Z': [0.02, 2500],
-      'Gyro_X': [0.001, 50000],
-      'Gyro_Y': [0.001, 50000],
-      'Gyro_Z': [0.001, 50000],
-      'Magn_X': [0.1, 360],
-      'Magn_Y': [0.1, 360],
-      'Magn_Z': [0.1, 360]
+  displayMetric(value, label, board_id) {
+    const units = { 
+      'Temp': "\xB0C",
+      'Hum':  "%",
+      'Press': "mBar",
+      'Accel_X': "mG",
+      'Accel_Y': "mG",
+      'Accel_Z': "mG",
+      'Gyro_X': "\xB0/S",
+      'Gyro_Y': "\xB0/S",
+      'Gyro_Z': "\xB0/S",
+      'Magn_X': "mGa",
+      'Magn_Y': "mGa",
+      'Magn_Z': "mGa"
     }
     
-    const m = Number( (((message[label] || 0) + normalize[label][1])*normalize[label][0]).toFixed(1) )
-    if (m > 100)
-      return 100;
-    else if (m < 0)
-      return 0;
-  
-    return m;
-
-    // return ((((m > 100) ? 100 : m) < 0) ? 0 : m)
-
+    return( value + " " + units[label])
   }
 
   getLatestBoardMetrics(board_id, labels) {
     const message = this.state.messages.map((m) => (m[Board_id_label] === board_id) && m).reduce((a,c) => a || c, undefined)
-    // console.log("for " + board_id + " using " + JSON.stringify(message))
-    
+
     let metrics = new Array(labels.length)
       .fill(0)
     if (message !== false)
-      metrics = metrics.map((l, i) => this.normalizeMetric(message, labels[i]))
-      
+      metrics = metrics.map((l, i) => message[labels[i]])
+
     return metrics
   }
 
   render() {
     const xLabels = this.state.metrics.slice(1, this.state.metrics.length)
     xLabels.splice(xLabels.indexOf(Board_id_label), 1)
-    const yLabels = this.state.things.map((t) => {return (t.thingName)}).sort()
+    const yLabels = this.state.things.map((t) => {return t}).sort()
 
     const data = []
     for (var i = 0; i < yLabels.length; i++) {
       const row = this.getLatestBoardMetrics(yLabels[i], xLabels)
-      // console.log("row: " + row)
       data.push(row)
     }
-    // console.log("data is " + JSON.stringify(data))
+    
 
     return (
       <div className="App">
         <div className="HeatMap">
         <HeatMap
-          xLabels={xLabels}
-          yLabels={yLabels}
-          data={data}
-          yLabelWidth = {150}
-          background = {"#ee9900"}
-          squares={true}
-          height={75}
-          cellRender={value => value && `${value}%`}
+          xLabels={xLabels} yLabels={yLabels} data={data}
+          yLabelWidth = {150} background = {"#ee9900"} squares={true} height={75}
+          cellRender={this.displayMetric}
         />
         </div>
         <div>
