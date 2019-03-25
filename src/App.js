@@ -90,11 +90,11 @@ class App extends Component {
   }
 
   render() {
-    const xLabels = this.state.metrics.slice(1, this.state.metrics.length)    // remove 'Time'
-    xLabels.splice(xLabels.indexOf(Board_id_label), 1)
-
+    const TableLabels = ["Time", "Board_id"]
+    const ExtraLabels = ["Gyro_X", "Gyro_Y", "Gyro_Z"]
+    const tLabels = this.state.metrics.filter(l => !ExtraLabels.includes(l))
+    const xLabels = this.state.metrics.filter(l => !TableLabels.includes(l) && !ExtraLabels.includes(l))
     const yLabels = [...new Set(this.state.messages.map((m) => m[Board_id_label]))].sort()
-
     const data = []
     for (let i = 0; i < yLabels.length; i++) {
       const row = this.getLatestBoardMetrics(yLabels[i], xLabels)
@@ -116,11 +116,14 @@ class App extends Component {
           <table>
             <thead>
               <tr>
-                {(this.state.metrics.length > 1) && this.state.metrics.map((m, j) => {return(<th key={j}>{m}</th>)})}
+                {(tLabels.length > 1) && tLabels
+                  .map((m, j) => {return(<th key={j}>{m}</th>)})}
               </tr>
             </thead>
             <tbody>
-              {this.state.messages.map((t,i) => {return(<tr key={i}>{this.state.metrics.map((m, j) => {return(<td key={j}>{t[m]}</td>)})}</tr>)})}
+              {this.state.messages.map((t,i) => {
+                return(<tr key={i}>{tLabels.map((m, j) => {
+                  return(<td key={j}>{t[m]}</td>)})}</tr>)})}
             </tbody>
           </table>
         </div>
