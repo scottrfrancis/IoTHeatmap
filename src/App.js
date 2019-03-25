@@ -90,10 +90,10 @@ class App extends Component {
   }
 
   render() {
-    const TableLabels = ["Time", "Board_id"]
-    const ExtraLabels = ["Gyro_X", "Gyro_Y", "Gyro_Z"]
-    const tLabels = this.state.metrics.filter(l => !ExtraLabels.includes(l))
-    const xLabels = this.state.metrics.filter(l => !TableLabels.includes(l) && !ExtraLabels.includes(l))
+    const TableLabelsToHide = ["Time", "Board_id"]
+    const ExtraLabelsToHide = ["Gyro_X", "Gyro_Y", "Gyro_Z"]
+    const tLabels = this.state.metrics.filter(l => !ExtraLabelsToHide.includes(l))
+    const xLabels = this.state.metrics.filter(l => !TableLabelsToHide.includes(l) && !ExtraLabelsToHide.includes(l))
     const yLabels = [...new Set(this.state.messages.map((m) => m[Board_id_label]))].sort()
     const data = []
     for (let i = 0; i < yLabels.length; i++) {
