@@ -1,13 +1,7 @@
 {
 	"auth": {
-		"cognito9459e001": {
+		"IoTWorkshop": {
 			"service": "Cognito",
-			"providerPlugin": "awscloudformation"
-		}
-	},
-	"hosting": {
-		"S3AndCloudFront": {
-			"service": "S3AndCloudFront",
 			"providerPlugin": "awscloudformation"
 		}
 	}
