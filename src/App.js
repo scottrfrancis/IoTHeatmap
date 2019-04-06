@@ -36,43 +36,45 @@ class App extends Component {
       metrics: ["Time"]   // metrics accummulates all keys ever seen in the messages -- but Time is first measurement
     }
     
-    this.handleTopicMessage = this.handleTopicMessage.bind(this)
-    this.getLatestBoardMetrics = this.getLatestBoardMetrics.bind(this)
     this.displayMetric = this.displayMetric.bind(this)
-    this.checkIfStudentIdRegistered = this.checkIfStudentIdRegistered.bind(this)
-    this.signInStudent = this.signInStudent.bind(this)
-     
+
+    // this.handleTopicMessage = this.handleTopicMessage.bind(this)
+
+    // this.getLatestBoardMetrics = this.getLatestBoardMetrics.bind(this)
+    // this.checkIfStudentIdRegistered = this.checkIfStudentIdRegistered.bind(this)
+    // this.signInStudent = this.signInStudent.bind(this)
+  }
+  
+  componentDidMount() {
     AWS.config.update({
       region: awsconfig.aws_cognito_region,
       credentials: new AWS.CognitoIdentityCredentials({
         IdentityPoolId: awsconfig.aws_cognito_identity_pool_id
       })
     })
-  // Auth.currentSession().then( 
-            
-      Auth.currentCredentials().then(
-        result => {
-          console.log(result)
-          
-          if (result.expired) {
-            // Auth.currentSession automatically refreshes tokens
-            Auth.currentSession().then(
-              result => console.log(result),
-              error => console.log(error)
-            )
-          }
-          
-  
-          this.checkIfStudentIdRegistered()        
-  
-          // subscribe to thing updates for any publishers
-          PubSub.subscribe('freertos/demos/sensors/#').subscribe({
-            next: data => this.handleTopicMessage(data.value),
-          })
-        },
-        error => console.log(error) )
-    // )
+
+    Auth.currentCredentials().then(
+      result => {
+        console.log(result)
+        
+        if (result.expired) {
+          // Auth.currentSession automatically refreshes tokens
+          Auth.currentSession().then(
+            result => console.log(result),
+            error => console.log(error)
+          )
+        }
+
+        this.checkIfStudentIdRegistered()        
+
+        // subscribe to thing updates for any publishers
+        PubSub.subscribe('freertos/demos/sensors/#').subscribe({
+          next: data => this.handleTopicMessage(data.value),
+        })
+      },
+      error => console.log(error) )
   }
+  
   
   handleTopicMessage(message) {
     message["Time"] = new Date().toLocaleTimeString()
@@ -124,11 +126,6 @@ class App extends Component {
       else {
         console.log(data)
         
-        // this.setState({
-        //   existingUser: data.Users &&
-        //       data.Users.map((u) => u.Username)
-        //         .reduce((a,c) => a || (c === this.state.studentId), undefined)
-        // })
         this.setState({
           existingUser: 
               data.Users.filter((u) => u.Username === this.state.studentId)[0]
