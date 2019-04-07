@@ -30,8 +30,6 @@ class App extends Component {
       studentId: window.location.pathname.split("/")[1],  // requested id
       existingUser: null,
 
-      username: "",
-
       messages: [],       // reverse-time ordered FIFO of last MaxSamples
       metrics: ["Time"]   // metrics accummulates all keys ever seen in the messages -- but Time is first measurement
     }
@@ -68,6 +66,21 @@ class App extends Component {
         })
       },
       error => console.log(error) )
+  }
+
+  getExistingUserFromUsername() {
+    let cognitoProvider = new AWS.CognitoIdentityServiceProvider()
+    cognitoProvider.listUsers({
+      UserPoolId: awsconfig.aws_user_pools_id,
+      Filter: "username = \"" + this.state.studentId + "\"",
+      Limit: 50     // really shouldn't ever be more than 1
+    }, (err, data) => {
+      if (err) console.log(err)
+      else {
+        console.log(data)
+        this.setState({ existingUser: data.Users[0] })
+      }
+    })
   }
 
 
@@ -109,24 +122,6 @@ class App extends Component {
       metrics = metrics.map((l, i) => message[labels[i]])
 
     return metrics
-  }
-
-  getExistingUserFromUsername() {
-    let cognitoProvider = new AWS.CognitoIdentityServiceProvider()
-    cognitoProvider.listUsers({
-      UserPoolId: awsconfig.aws_user_pools_id,
-      Filter: "username = \"" + this.state.studentId + "\"",
-      Limit: 50
-    }, (err, data) => {
-      if (err) console.log(err)
-      else {
-        console.log(data)
-
-        this.setState({
-          existingUser: data.Users[0]
-        })
-      }
-    })
   }
 
 
