@@ -1,6 +1,6 @@
 import { Auth } from 'aws-amplify'
 import React, { Component } from 'react'
-import { Button, FormGroup, FormControl, FormLabel } from "react-bootstrap";
+import { Button, Col, Form, FormGroup, FormControl, FormLabel } from "react-bootstrap";
 
 
 class Signup extends Component {
@@ -24,10 +24,6 @@ class Signup extends Component {
     this.logIn = this.logIn.bind(this)
     this.confirmWithCode = this.confirmWithCode.bind(this)
     this.signUp = this.signUp.bind(this)
-
-    // this.validateConfirmationCode = this.validateConfirmationCode.bind(this)
-    // this.handleChange = this.handleChange.bind(this)
-    // this.validateForm = this.validateForm.bind(this)
   }
 
   isExistingUserConfirmed() {
@@ -140,33 +136,41 @@ class Signup extends Component {
 
 
   render() {
-     if (this.state.isUserLoggedIn) {
+    const labelSize = 3
+    const controlSize = 3
+
+    if (this.state.isUserLoggedIn) {
       // show username and logout
       return(
         <div>
-          <h1>{this.state.username} Logged In</h1>
-          <Button onClick={this.logOut}
-            block size="large" type="button"
-          >Log out</Button>
+          <h1>{this.props.username} Logged In</h1>
+          <Col sm={controlSize}>
+            <Button onClick={this.logOut}
+              block size="large" type="button"
+            >Log out</Button>
+          </Col>
         </div>
       )
     } else if (this.isExistingUserConfirmed()) {
       // show password to login
       return(
         <div>
-          <h1>Enter password for {this.state.username}</h1>
-          <form onSubmit={this.logIn}>
+          <h1>Enter password for {this.props.username}</h1>
+          <Form onSubmit={this.logIn}>
             <FormGroup controlId="password" size="large">
-              <FormLabel>Password</FormLabel>
-              <FormControl
-                value={this.state.password}
-                onChange={this.handleChange} type="password" autoComplete="off" autoFocus
-              />
+              <FormLabel column sm={labelSize}>Password</FormLabel>
+              <Col sm={controlSize}>
+                <FormControl
+                  value={this.state.password}
+                  onChange={this.handleChange} type="password" autoComplete="off" autoFocus />
+              </Col>
             </FormGroup>
-            <Button
-              block size="large" type="submit" disabled={this.passwordIsEmpty}
-            >Log in</Button>
-          </form>
+            <Col sm={controlSize}>
+              <Button
+                block size="large" type="submit" disabled={this.passwordIsEmpty}
+              >Log in</Button>
+            </Col>
+          </Form>
         </div>
       )
     } else if (this.existingUserNeedsToConfirm()) {
@@ -174,19 +178,22 @@ class Signup extends Component {
       return(
         <div>
           <h1>new user</h1>
-          <form onSubmit={this.confirmWithCode}>
+          <Form onSubmit={this.confirmWithCode}>
             <FormGroup controlId="confirmationCode" size="large">
-              <FormLabel>Confirmation Code</FormLabel>
-              <FormControl
-                value={this.state.confirmationCode}
-                onChange={this.handleChange} type="text" autoComplete="off" autoFocus
-              />
+              <FormLabel column sm={labelSize}>Confirmation Code</FormLabel>
+              <Col sm={controlSize}>
+                <FormControl
+                  value={this.state.confirmationCode}
+                  onChange={this.handleChange} type="text" autoComplete="off" autoFocus />
+              </Col>
             </FormGroup>
-            <Button
-              block size="large" type="submit"
-              disabled={!this.validateConfirmationCode}
-            >{'Confirm'}</Button>
-          </form>
+            <Col sm={controlSize}>
+              <Button
+                block size="large" type="submit"
+                disabled={!this.validateConfirmationCode}
+              >{'Confirm'}</Button>
+            </Col>
+          </Form>
         </div>
       )
     } else {
@@ -194,41 +201,47 @@ class Signup extends Component {
       console.log(this.props.existingUser)
       // show signup form
       return(
-        <div>
+        <div sm="4">
           <h1>Please sign up.</h1>
 
-          <form onSubmit={this.signUp}>
+          <Form onSubmit={this.signUp}>
             <FormGroup controlId="given_name" size="large">
-              <FormLabel>First Name</FormLabel>
-              <FormControl autoFocus autoComplete="on" type="text" onChange={this.handleChange}
-                value={this.state.given_name}
-              />
+              <FormLabel column sm={labelSize}>First Name</FormLabel>
+              <Col sm={controlSize}>
+                <FormControl autoFocus autoComplete="on" type="text" onChange={this.handleChange}
+                  value={this.state.given_name} />
+              </Col>
             </FormGroup>
             <FormGroup controlId="family_name" size="large">
-              <FormLabel>Last Name</FormLabel>
-              <FormControl autoComplete="on" type="text" onChange={this.handleChange}
-                value={this.state.family_name}
-              />
+              <FormLabel column sm={labelSize}>Last Name</FormLabel>
+              <Col sm={controlSize}>
+                <FormControl autoComplete="on" type="text" onChange={this.handleChange}
+                  value={this.state.family_name} />
+              </Col>
             </FormGroup>
             <FormGroup controlId="email" size="large">
-              <FormLabel>Email</FormLabel>
-              <FormControl
-                autoFocus autoComplete="on" type="email" onChange={this.handleChange}
-                value={this.state.email}
-              />
+              <FormLabel column sm={labelSize}>Email</FormLabel>
+              <Col sm={controlSize}>
+                <FormControl
+                  autoFocus autoComplete="on" type="email" onChange={this.handleChange}
+                  value={this.state.email} />
+              </Col>
             </FormGroup>
             <FormGroup controlId="password" size="large">
-              <FormLabel>Password</FormLabel>
-              <FormControl
-                value={this.state.password}
-                onChange={this.handleChange} type="password" autoComplete="off"
-              />
+              <FormLabel column sm={labelSize}>Password</FormLabel>
+              <Col sm={controlSize}>
+                <FormControl
+                  value={this.state.password}
+                  onChange={this.handleChange} type="password" autoComplete="off" />
+              </Col>
             </FormGroup>
-            <Button
-              block size="large" type="submit"
-              disabled={!this.validateSignUpForm()}
-            >{'Sign up'}</Button>
-          </form>
+            <Col sm={controlSize}>
+              <Button
+                block size="large" type="submit"
+                disabled={!this.validateSignUpForm()}
+              >{'Sign up'}</Button>
+            </Col>
+          </Form>
         </div>
       )
     }
