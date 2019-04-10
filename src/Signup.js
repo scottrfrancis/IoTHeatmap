@@ -16,10 +16,6 @@ class Signup extends Component {
       confirmationCode: ""
     }
 
-    if (this.props.existingUser) {
-      console.log(this.props.existingUser)
-    }
-
     this.logOut = this.logOut.bind(this)
     this.logIn = this.logIn.bind(this)
     this.confirmWithCode = this.confirmWithCode.bind(this)
@@ -31,12 +27,11 @@ class Signup extends Component {
   }
 
   existingUserNeedsToConfirm() {
-    console.log(this.props.existingUser)
     return ((this.props.existingUser) && (this.props.existingUser.UserStatus !== "CONFIRMED"))
   }
 
-  passwordIsEmpty() {
-    return (this.state.password.length === 0)
+  passwordNotEmpty() {
+    return (this.state.password.length !== 0)
   }
 
   validateConfirmationCode() {
@@ -44,13 +39,14 @@ class Signup extends Component {
   }
 
   updateExistingUser() {
-    (this.props.updateUser) && (this.props.updateUser())
+    (this.props.updateUser) && (this.props.updateUser());
+    (this.state.isUserLoggedIn) && (this.props.onUserSignin) && (this.props.onUserSignin(this.state.isUserLoggedIn));
   }
 
   validateSignUpForm() {
     return (
       this.state.email.length > 0 &&
-      !this.passwordIsEmpty() &&
+      this.passwordNotEmpty() &&
       this.state.given_name.length > 0 &&
       this.state.family_name.length > 0
     )
@@ -73,6 +69,8 @@ class Signup extends Component {
     this.setState({
       isUserLoggedIn: false
     })
+
+    this.updateExistingUser()
   }
 
   logIn = async event => {
@@ -87,7 +85,9 @@ class Signup extends Component {
         console.log(error)
         this.setState({ isUserLoggedIn: false })
       }
-    )
+    ).finally( () => {
+      this.updateExistingUser()
+    })
   }
 
   confirmWithCode = async event => {
@@ -127,11 +127,9 @@ class Signup extends Component {
         family_name: this.state.family_name,
         email: this.state.email
       }})
+    console.log(newUser)
 
-      console.log(`Use ${this.state.password} for ${newUser}`)
-      console.log(newUser)
-
-      this.updateExistingUser()
+    this.updateExistingUser()
   }
 
 
@@ -167,7 +165,7 @@ class Signup extends Component {
             </FormGroup>
             <Col sm={controlSize}>
               <Button
-                block size="large" type="submit" disabled={this.passwordIsEmpty}
+                block size="large" type="submit" disabled={!this.passwordNotEmpty}
               >Log in</Button>
             </Col>
           </Form>
@@ -197,8 +195,7 @@ class Signup extends Component {
         </div>
       )
     } else {
-      // existingUser should be null
-      console.log(this.props.existingUser)
+      // R: existingUser should be null
       // show signup form
       return(
         <div sm="4">

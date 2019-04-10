@@ -1,0 +1,32 @@
+
+AWS Console Login:
+https://sttt.signin.aws.amazon.com/console
+Login: student03
+Password: CBK7r2|5Put*
+
+Workspaces Credentials
+Registration: WSpdx+P2D4ZD
+Login: student03
+Password: CBK7r2|5Put*
+
+Access key: AKIAIPVAAHHFK67DG4XA
+Secret key: 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
+
+GitHub URL: https://github.com/yona75/sttt-workshop
+Branches: master, sensors-demo
+
+Content for sttt-wooorkshop/tools/ws_config_quick_start/configure.json file:
+{
+    "afr_source_dir":"../..",
+    "thing_name":"student03",
+    "wifi_ssid":"staws2019",
+    "wifi_password":"staws2019",
+    "wifi_security":"eWiFiSecurityWPA2"
+}
+
+Line 90 in sttt-workshop/blob/master/demos/common/mqtt/aws_hello_world.c :
+#define echoTOPIC_NAME           ( ( const uint8_t * ) "freertos/demos/echo/student03" )
+
+AWS 10USD credit voucher: PC196GF0TUVHHIG
+Expiration date: 01/31/20
+

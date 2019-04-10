@@ -7,6 +7,7 @@ import awsiot from './aws-iot'
 import AWS from 'aws-sdk'
 import HeatMap from 'react-heatmap-grid'
 import Signup from './Signup'
+import Credentials from './Credentials'
 
 
 const MaxSamples = 50
@@ -17,9 +18,6 @@ const Board_id_label = "Board_id"
 Auth.configure(awsconfig);
 
 Amplify.configure(awsconfig);
-Amplify.addPluggable( new AWSIoTProvider(awsiot) )
-
-PubSub.configure()
 
 
 class App extends Component {
@@ -36,9 +34,12 @@ class App extends Component {
 
     this.displayMetric = this.displayMetric.bind(this)
     this.getExistingUserFromUsername = this.getExistingUserFromUsername.bind(this)
+    this.onUserSignin = this.onUserSignin.bind(this)
   }
 
   componentDidMount() {
+    Amplify.addPluggable( new AWSIoTProvider(awsiot) )
+
     AWS.config.update({
       region: awsconfig.aws_cognito_region,
       credentials: new AWS.CognitoIdentityCredentials({
@@ -53,22 +54,24 @@ class App extends Component {
         if (result.expired) {
           // Auth.currentSession automatically refreshes tokens
           Auth.currentSession().then(
-            result => console.log(result),
-            error => console.log(error)
+            result => console.log(result)
           )
         }
 
         this.getExistingUserFromUsername()
 
         // subscribe to thing updates for any publishers
+        PubSub.configure()
         PubSub.subscribe('freertos/demos/sensors/#').subscribe({
           next: data => this.handleTopicMessage(data.value),
+          error: error => console.log(error)
         })
-      },
-      error => console.log(error) )
+      })
   }
 
-  getExistingUserFromUsername() {
+  getExistingUserFromUsername = async () => {
+    await Auth.currentSession()
+
     let cognitoProvider = new AWS.CognitoIdentityServiceProvider()
     cognitoProvider.listUsers({
       UserPoolId: awsconfig.aws_user_pools_id,
@@ -77,9 +80,20 @@ class App extends Component {
     }, (err, data) => {
       if (err) console.log(err)
       else {
-        console.log(data)
         this.setState({ existingUser: data.Users[0] })
       }
+    })
+  }
+
+  onUserSignin = async (isUserLoggedIn) => {
+    Auth.currentUserCredentials().then((creds) => {
+      console.log(creds)
+      AWS.config.update({
+        credentials: creds
+      })
+    })
+    .finally(() => {
+      this.setState({ isUserLoggedIn: isUserLoggedIn })
     })
   }
 
@@ -126,13 +140,22 @@ class App extends Component {
 
 
   render() {
-      console.log( this.state.existingUser)
       return(
         <div>
           <Signup
             username={this.state.studentId}
             existingUser={this.state.existingUser}
-            updateUser={this.getExistingUserFromUsername}/>
+            updateUser={this.getExistingUserFromUsername}
+            onUserSignin={this.onUserSignin} />
+          <br/>
+          {(this.state.isUserLoggedIn) &&
+            <Credentials
+              bucketName={'sttechnologytour-scofranc'}
+              username={this.state.studentId}
+            />
+          }
+
+
         </div>
       )
 

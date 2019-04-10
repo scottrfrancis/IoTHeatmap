@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "aws-amplify": "^1.1.22",
+    "aws-amplify": "^1.1.25",
     "aws-amplify-react": "^2.3.2",
     "bootstrap": "^4.3.1",
     "heatmap.js": "^2.0.5",
