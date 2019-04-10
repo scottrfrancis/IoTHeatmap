@@ -19,6 +19,29 @@ Auth.configure(awsconfig);
 
 Amplify.configure(awsconfig);
 
+Amplify.addPluggable( new AWSIoTProvider(awsiot) )
+
+AWS.config.update({
+  region: awsconfig.aws_cognito_region })
+updateAWSCredsForAnonymous()
+
+
+function updateAWSCredsForAnonymous() {
+  AWS.config.update({
+    credentials: new AWS.CognitoIdentityCredentials({
+      IdentityPoolId: awsconfig.aws_cognito_identity_pool_id
+    })
+  })
+}
+
+function updateAWSCredsForCurrentUser() {
+  Auth.currentUserCredentials().then((creds) => {
+    console.log(creds)
+    AWS.config.update({
+      credentials: creds
+    })
+  })
+}
 
 class App extends Component {
   constructor(props) {
@@ -27,6 +50,7 @@ class App extends Component {
     this.state = {
       studentId: window.location.pathname.split("/")[1],  // requested id
       existingUser: null,
+      isUserLoggedIn: false,
 
       messages: [],       // reverse-time ordered FIFO of last MaxSamples
       metrics: ["Time"]   // metrics accummulates all keys ever seen in the messages -- but Time is first measurement
@@ -34,67 +58,70 @@ class App extends Component {
 
     this.displayMetric = this.displayMetric.bind(this)
     this.getExistingUserFromUsername = this.getExistingUserFromUsername.bind(this)
-    this.onUserSignin = this.onUserSignin.bind(this)
+    this.onUserSignIn = this.onUserSignIn.bind(this)
+    this.onUserSignOut = this.onUserSignOut.bind(this)
+
+   // subscribe to thing updates for any publishers
+    // PubSub.configure()
+    // PubSub.subscribe('freertos/demos/sensors/#').subscribe({
+    //   next: data => this.handleTopicMessage(data.value),
+    //   error: error => console.log(error)
+    // })
+
   }
 
   componentDidMount() {
-    Amplify.addPluggable( new AWSIoTProvider(awsiot) )
-
-    AWS.config.update({
-      region: awsconfig.aws_cognito_region,
-      credentials: new AWS.CognitoIdentityCredentials({
-        IdentityPoolId: awsconfig.aws_cognito_identity_pool_id
-      })
-    })
-
     Auth.currentCredentials().then(
       result => {
         console.log(result)
 
-        if (result.expired) {
-          // Auth.currentSession automatically refreshes tokens
-          Auth.currentSession().then(
-            result => console.log(result)
-          )
-        }
+  //       if (result.expired) {
+  //         // Auth.currentSession automatically refreshes tokens
+  //         Auth.currentSession().then(
+  //           result => console.log(result)
+  //         )
+  //       }
 
         this.getExistingUserFromUsername()
 
-        // subscribe to thing updates for any publishers
-        PubSub.configure()
-        PubSub.subscribe('freertos/demos/sensors/#').subscribe({
-          next: data => this.handleTopicMessage(data.value),
-          error: error => console.log(error)
-        })
+  //       // // subscribe to thing updates for any publishers
+  //       // PubSub.configure()
+  //       // PubSub.subscribe('freertos/demos/sensors/#').subscribe({
+  //       //   next: data => this.handleTopicMessage(data.value),
+  //       //   error: error => console.log(error)
+  //       // })
       })
   }
 
-  getExistingUserFromUsername = async () => {
-    await Auth.currentSession()
+  getExistingUserFromUsername =  () => {
+    // Auth.currentSession().then((session) => {
+      // console.log(session)
+      let cognitoProvider = new AWS.CognitoIdentityServiceProvider()
+      cognitoProvider.listUsers({
+        UserPoolId: awsconfig.aws_user_pools_id,
+        Filter: "username = \"" + this.state.studentId + "\"",
+        Limit: 50     // really shouldn't ever be more than 1
+      }, (err, data) => {
+        if (err) console.log(err)
+        else {
+          this.setState({ existingUser: data.Users[0] })
+        }
+      })
+    // }).catch((error) => {
+    //   console.log(error)
+    // })
+   }
 
-    let cognitoProvider = new AWS.CognitoIdentityServiceProvider()
-    cognitoProvider.listUsers({
-      UserPoolId: awsconfig.aws_user_pools_id,
-      Filter: "username = \"" + this.state.studentId + "\"",
-      Limit: 50     // really shouldn't ever be more than 1
-    }, (err, data) => {
-      if (err) console.log(err)
-      else {
-        this.setState({ existingUser: data.Users[0] })
-      }
-    })
+  onUserSignIn =  () => {
+    updateAWSCredsForCurrentUser()
+    this.setState({ isUserLoggedIn: true })
+    this.getExistingUserFromUsername()
   }
 
-  onUserSignin = async (isUserLoggedIn) => {
-    Auth.currentUserCredentials().then((creds) => {
-      console.log(creds)
-      AWS.config.update({
-        credentials: creds
-      })
-    })
-    .finally(() => {
-      this.setState({ isUserLoggedIn: isUserLoggedIn })
-    })
+  onUserSignOut =  () => {
+    updateAWSCredsForAnonymous()
+    this.setState({ isUserLoggedIn: false })
+    this.getExistingUserFromUsername()
   }
 
 
@@ -146,15 +173,15 @@ class App extends Component {
             username={this.state.studentId}
             existingUser={this.state.existingUser}
             updateUser={this.getExistingUserFromUsername}
-            onUserSignin={this.onUserSignin} />
+            onUserSignIn={this.onUserSignIn}
+            onUserSignOut={this.onUserSignOut}
+            isUserLoggedIn={this.state.isUserLoggedIn}/>
           <br/>
-          {(this.state.isUserLoggedIn) &&
-            <Credentials
-              bucketName={'sttechnologytour-scofranc'}
-              username={this.state.studentId}
-            />
-          }
-
+          <Credentials
+            bucketName={'sttechnologytour-scofranc'}
+            username={this.state.studentId}
+            disabled={!this.state.isUserLoggedIn}
+          />
 
         </div>
       )

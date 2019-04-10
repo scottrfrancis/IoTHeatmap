@@ -8,7 +8,7 @@ class Signup extends Component {
     super(props)
 
     this.state = {
-      isUserLoggedIn: false,
+      // isUserLoggedIn: false,
       given_name: "",
       family_name: "",
       email: "",
@@ -40,7 +40,6 @@ class Signup extends Component {
 
   updateExistingUser() {
     (this.props.updateUser) && (this.props.updateUser());
-    (this.state.isUserLoggedIn) && (this.props.onUserSignin) && (this.props.onUserSignin(this.state.isUserLoggedIn));
   }
 
   validateSignUpForm() {
@@ -64,29 +63,28 @@ class Signup extends Component {
 
     Auth.signOut()
     .then(data => console.log(data))
-    .catch(err => console.log(err));
-
-    this.setState({
-      isUserLoggedIn: false
+    .catch(err => console.log(err))
+    .finally(() => {
+      (this.props.onUserSignOut) && (this.props.onUserSignOut())
     })
-
-    this.updateExistingUser()
   }
 
   logIn = async event => {
     event.preventDefault()
+    let success = false
 
     Auth.signIn(this.props.username, this.state.password).then(
       u => {
         console.log(u)
-        this.setState({ isUserLoggedIn: (u !== undefined) })
+        success = (u !== undefined)
       },
       error => {
         console.log(error)
-        this.setState({ isUserLoggedIn: false })
+        success = false
       }
     ).finally( () => {
-      this.updateExistingUser()
+      success && (this.props.onUserSignIn) && (this.props.onUserSignIn())
+      !success && (this.props.onUserSignOut) && (this.props.onUserSignOut())
     })
   }
 
@@ -96,17 +94,7 @@ class Signup extends Component {
     Auth.confirmSignUp(this.props.username, this.state.confirmationCode).then(
       conf => {
         console.log(conf)
-
-        Auth.signIn(this.props.username, this.state.password).then(
-          u => {
-            console.log(u)
-             this.setState({ isUserLoggedIn: (u !== undefined) })
-          },
-          error => {
-            console.log(error)
-            this.setState({ isUserLoggedIn: false })
-          }
-        )
+        this.logIn(event)
       },
       error => {
         console.log(error)
@@ -137,7 +125,7 @@ class Signup extends Component {
     const labelSize = 3
     const controlSize = 3
 
-    if (this.state.isUserLoggedIn) {
+    if (this.props.isUserLoggedIn) {
       // show username and logout
       return(
         <div>

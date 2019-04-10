@@ -17,6 +17,11 @@ class Credentials extends Component {
   }
 
   componentDidMount() {
+    if (this.props.disabled) {
+      this.setState({ data: "" })
+      return
+    }
+
     const key = this.props.username + "/" + this.props.username + "_credentials.txt"
     const s3 = new AWS.S3({
       apiVersion: '2006-03-01',
@@ -26,17 +31,19 @@ class Credentials extends Component {
       Bucket: this.props.bucketName,
       Key: key
     }, (err, data) => {
-      if (err) console.log(err)
-
-      console.log(data)
-      this.setState({ data: data.Body.toString() })
+      if (err) {
+        // console.log(err)
+        this.setState({ data: "" })
+      } else {
+        (data.Body) && this.setState({ data: data.Body.toString() })
+      }
     })
   }
 
   render() {
     return(
       <div>
-        <h2>your data here</h2>
+        {!this.props.disabled && <h2>your data here</h2>}
         {this.state.data}
       </div>
     )
