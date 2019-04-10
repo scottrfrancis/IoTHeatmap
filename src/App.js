@@ -34,14 +34,6 @@ function updateAWSCredsForAnonymous() {
   })
 }
 
-function updateAWSCredsForCurrentUser() {
-  Auth.currentUserCredentials().then((creds) => {
-    console.log(creds)
-    AWS.config.update({
-      credentials: creds
-    })
-  })
-}
 
 class App extends Component {
   constructor(props) {
@@ -60,32 +52,16 @@ class App extends Component {
     this.getExistingUserFromUsername = this.getExistingUserFromUsername.bind(this)
     this.onUserSignIn = this.onUserSignIn.bind(this)
     this.onUserSignOut = this.onUserSignOut.bind(this)
-
-   // subscribe to thing updates for any publishers
-    // PubSub.configure()
-    // PubSub.subscribe('freertos/demos/sensors/#').subscribe({
-    //   next: data => this.handleTopicMessage(data.value),
-    //   error: error => console.log(error)
-    // })
-
   }
 
   componentDidMount() {
     Auth.currentCredentials().then(
       result => {
         console.log(result)
-
-  //       if (result.expired) {
-  //         // Auth.currentSession automatically refreshes tokens
-  //         Auth.currentSession().then(
-  //           result => console.log(result)
-  //         )
-  //       }
-
         this.getExistingUserFromUsername()
 
   //       // // subscribe to thing updates for any publishers
-  //       // PubSub.configure()
+        PubSub.configure()
   //       // PubSub.subscribe('freertos/demos/sensors/#').subscribe({
   //       //   next: data => this.handleTopicMessage(data.value),
   //       //   error: error => console.log(error)
@@ -94,8 +70,6 @@ class App extends Component {
   }
 
   getExistingUserFromUsername =  () => {
-    // Auth.currentSession().then((session) => {
-      // console.log(session)
       let cognitoProvider = new AWS.CognitoIdentityServiceProvider()
       cognitoProvider.listUsers({
         UserPoolId: awsconfig.aws_user_pools_id,
@@ -107,15 +81,17 @@ class App extends Component {
           this.setState({ existingUser: data.Users[0] })
         }
       })
-    // }).catch((error) => {
-    //   console.log(error)
-    // })
    }
 
   onUserSignIn =  () => {
-    updateAWSCredsForCurrentUser()
-    this.setState({ isUserLoggedIn: true })
-    this.getExistingUserFromUsername()
+    Auth.currentUserCredentials().then((creds) => {
+      console.log(creds)
+      AWS.config.update({
+        credentials: creds
+      })
+
+      this.setState({ isUserLoggedIn: true })
+    })
   }
 
   onUserSignOut =  () => {
@@ -177,11 +153,11 @@ class App extends Component {
             onUserSignOut={this.onUserSignOut}
             isUserLoggedIn={this.state.isUserLoggedIn}/>
           <br/>
+          {this.state.isUserLoggedIn &&
           <Credentials
             bucketName={'sttechnologytour-scofranc'}
             username={this.state.studentId}
-            disabled={!this.state.isUserLoggedIn}
-          />
+          />}
 
         </div>
       )

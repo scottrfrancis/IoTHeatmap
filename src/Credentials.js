@@ -11,9 +11,7 @@ class Credentials extends Component {
   constructor(props) {
     super(props)
 
-    this.state = {
-      data: ""
-    }
+    this.state = { data: "" }
   }
 
   componentDidMount() {
@@ -43,7 +41,7 @@ class Credentials extends Component {
   render() {
     return(
       <div>
-        {!this.props.disabled && <h2>your data here</h2>}
+        <h2>your data here</h2>
         {this.state.data}
       </div>
     )

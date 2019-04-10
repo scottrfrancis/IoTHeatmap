@@ -8,7 +8,6 @@ class Signup extends Component {
     super(props)
 
     this.state = {
-      // isUserLoggedIn: false,
       given_name: "",
       family_name: "",
       email: "",
