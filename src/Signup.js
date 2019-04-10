@@ -1,6 +1,6 @@
 import { Auth } from 'aws-amplify'
 import React, { Component } from 'react'
-import { Button, Col, Form, FormGroup, FormControl, FormLabel } from "react-bootstrap";
+import { Alert, Button, Col, Form, FormGroup, FormControl, FormLabel } from "react-bootstrap";
 
 
 class Signup extends Component {
@@ -12,7 +12,9 @@ class Signup extends Component {
       family_name: "",
       email: "",
       password: "",
-      confirmationCode: ""
+      confirmationCode: "",
+
+      errorMessage: ""
     }
 
     this.logOut = this.logOut.bind(this)
@@ -80,6 +82,7 @@ class Signup extends Component {
       error => {
         console.log(error)
         success = false
+        this.setState({ errorMessage: error.message })
       }
     ).finally( () => {
       success && (this.props.onUserSignIn) && (this.props.onUserSignIn())
@@ -97,6 +100,7 @@ class Signup extends Component {
       },
       error => {
         console.log(error)
+        this.setState({ errorMessage: error.message })
       }
     ).finally( () => {
       this.updateExistingUser()
@@ -113,12 +117,25 @@ class Signup extends Component {
         given_name: this.state.given_name,
         family_name: this.state.family_name,
         email: this.state.email
-      }})
+    }})
+    .catch((err) => {
+      console.log(err)
+      this.setState({ errorMessage: err.message })
+    })
     console.log(newUser)
 
     this.updateExistingUser()
   }
 
+  errorAlert() {
+    if (this.state.errorMessage !== "") {
+      return (
+        <Alert variant='danger'>
+          {this.state.errorMessage}
+        </Alert>
+      )
+    }
+  }
 
   render() {
     const labelSize = 3
@@ -141,6 +158,7 @@ class Signup extends Component {
       return(
         <div>
           <h1>Enter password for {this.props.username}</h1>
+          {this.errorAlert()}
           <Form onSubmit={this.logIn}>
             <FormGroup controlId="password" size="large">
               <FormLabel column sm={labelSize}>Password</FormLabel>
@@ -163,6 +181,7 @@ class Signup extends Component {
       return(
         <div>
           <h1>new user</h1>
+          {this.errorAlert()}
           <Form onSubmit={this.confirmWithCode}>
             <FormGroup controlId="confirmationCode" size="large">
               <FormLabel column sm={labelSize}>Confirmation Code</FormLabel>
@@ -187,7 +206,7 @@ class Signup extends Component {
       return(
         <div sm="4">
           <h1>Please sign up.</h1>
-
+          {this.errorAlert()}
           <Form onSubmit={this.signUp}>
             <FormGroup controlId="given_name" size="large">
               <FormLabel column sm={labelSize}>First Name</FormLabel>

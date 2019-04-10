@@ -60,12 +60,12 @@ class App extends Component {
         console.log(result)
         this.getExistingUserFromUsername()
 
-  //       // // subscribe to thing updates for any publishers
+        // subscribe to thing updates for any publishers
         PubSub.configure()
-  //       // PubSub.subscribe('freertos/demos/sensors/#').subscribe({
-  //       //   next: data => this.handleTopicMessage(data.value),
-  //       //   error: error => console.log(error)
-  //       // })
+        // PubSub.subscribe('freertos/demos/sensors/#').subscribe({
+        //   next: data => this.handleTopicMessage(data.value),
+        //   error: error => console.log(error)
+        // })
       })
   }
 
