@@ -11,8 +11,7 @@ class Signup extends Component {
     super(props)
 
     this.state = {
-      given_name: "",
-      family_name: "",
+      name: "",
       email: "",
       password: "",
       confirmationCode: "",
@@ -50,8 +49,7 @@ class Signup extends Component {
     return (
       this.state.email.length > 0 &&
       this.passwordNotEmpty() &&
-      this.state.given_name.length > 0 &&
-      this.state.family_name.length > 0
+      this.state.name.length > 0
     )
   }
 
@@ -117,8 +115,7 @@ class Signup extends Component {
       username: this.props.username,
       password: this.state.password,
       attributes: {
-        given_name: this.state.given_name,
-        family_name: this.state.family_name,
+        name: this.state.name,
         email: this.state.email
     }})
     .catch((err) => {
@@ -201,15 +198,8 @@ class Signup extends Component {
   signupForm() {
     return (
       <Form onSubmit={this.signUp}>
-        <FormGroup controlId="given_name" size="large">
-          <FormLabel column sm={labelSize}>First Name</FormLabel>
-          <Col sm={controlSize}>
-            <FormControl autoFocus autoComplete="on" type="text" onChange={this.handleChange}
-              value={this.state.given_name} />
-          </Col>
-        </FormGroup>
-        <FormGroup controlId="family_name" size="large">
-          <FormLabel column sm={labelSize}>Last Name</FormLabel>
+        <FormGroup controlId="name" size="large">
+          <FormLabel column sm={labelSize}>Name</FormLabel>
           <Col sm={controlSize}>
             <FormControl autoComplete="on" type="text" onChange={this.handleChange}
               value={this.state.family_name} />
