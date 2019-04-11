@@ -20,6 +20,8 @@ Auth.configure(awsconfig);
 Amplify.configure(awsconfig);
 
 Amplify.addPluggable( new AWSIoTProvider(awsiot) )
+PubSub.configure()
+
 
 AWS.config.update({
   region: awsconfig.aws_cognito_region })
@@ -61,11 +63,10 @@ class App extends Component {
         this.getExistingUserFromUsername()
 
         // subscribe to thing updates for any publishers
-        PubSub.configure()
-        // PubSub.subscribe('freertos/demos/sensors/#').subscribe({
-        //   next: data => this.handleTopicMessage(data.value),
-        //   error: error => console.log(error)
-        // })
+        PubSub.subscribe('freertos/demos/sensors/#').subscribe({
+          next: data => this.handleTopicMessage(data.value),
+          error: error => console.log(error)
+        })
       })
   }
 
@@ -142,8 +143,12 @@ class App extends Component {
   }
 
 
+
+
   render() {
-      return(
+    let userBlock = ""
+    if (this.state.studentId !== "") {
+      userBlock =
         <div>
           <Signup
             username={this.state.studentId}
@@ -153,15 +158,16 @@ class App extends Component {
             onUserSignOut={this.onUserSignOut}
             isUserLoggedIn={this.state.isUserLoggedIn}/>
           <br/>
-          {this.state.isUserLoggedIn &&
-          <Credentials
-            bucketName={'sttechnologytour-scofranc'}
-            username={this.state.studentId}
-          />}
-
         </div>
-      )
 
+      if (this.state.isUserLoggedIn) {
+          userBlock +=
+            <Credentials
+              bucketName={'sttechnologytour-scofranc'}
+              username={this.state.studentId}
+            />
+      }
+    }
 
     const TableLabelsToHide = ["Time", "Board_id"]
     const ExtraLabelsToHide = ["Gyro_X", "Gyro_Y", "Gyro_Z"]
@@ -177,6 +183,7 @@ class App extends Component {
 
     return (
       <div className="App">
+        {userBlock}
         <div className="HeatMap">
         <HeatMap
           xLabels={xLabels} yLabels={yLabels} data={data}
@@ -201,7 +208,7 @@ class App extends Component {
           </table>
         </div>
       </div>
-    );
+    )
   }
 }
 

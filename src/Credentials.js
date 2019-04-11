@@ -1,6 +1,7 @@
 import Amplify from 'aws-amplify'
 import React, { Component } from 'react'
-import { Col } from "react-bootstrap";
+import { Col } from "react-bootstrap"
+import ReactMarkdown from 'react-markdown'
 import AWS from 'aws-sdk'
 import awsconfig from './aws-exports'
 
@@ -42,7 +43,7 @@ class Credentials extends Component {
     return(
       <div>
         <h2>your data here</h2>
-        {this.state.data}
+        <ReactMarkdown source={this.state.data} />
       </div>
     )
   }

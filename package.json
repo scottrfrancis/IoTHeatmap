@@ -12,6 +12,7 @@
     "react-dom": "^16.8.4",
     "react-heatmap": "^1.0.6",
     "react-heatmap-grid": "^0.8.0",
+    "react-markdown": "^4.0.6",
     "react-scripts": "2.1.8"
   },
   "scripts": {
