@@ -1,6 +1,5 @@
 import Amplify from 'aws-amplify'
 import React, { Component } from 'react'
-import { Col } from "react-bootstrap"
 import ReactMarkdown from 'react-markdown'
 import AWS from 'aws-sdk'
 import awsconfig from './aws-exports'

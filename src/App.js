@@ -23,8 +23,13 @@ Amplify.addPluggable( new AWSIoTProvider(awsiot) )
 PubSub.configure()
 
 
+Auth.currentCredentials().then((creds) =>{
+  console.log(creds)
+})
+
 AWS.config.update({
-  region: awsconfig.aws_cognito_region })
+  region: awsconfig.aws_cognito_region
+})
 updateAWSCredsForAnonymous()
 
 
@@ -54,20 +59,16 @@ class App extends Component {
     this.getExistingUserFromUsername = this.getExistingUserFromUsername.bind(this)
     this.onUserSignIn = this.onUserSignIn.bind(this)
     this.onUserSignOut = this.onUserSignOut.bind(this)
-  }
+ }
 
   componentDidMount() {
-    Auth.currentCredentials().then(
-      result => {
-        console.log(result)
-        this.getExistingUserFromUsername()
+    this.getExistingUserFromUsername()
 
-        // subscribe to thing updates for any publishers
-        PubSub.subscribe('freertos/demos/sensors/#').subscribe({
-          next: data => this.handleTopicMessage(data.value),
-          error: error => console.log(error)
-        })
-      })
+    PubSub.subscribe('freertos/demos/sensors/Discovery-02').subscribe({
+      next: data => this.handleTopicMessage(data.value),
+      error: error => console.log(error),
+      close: () => console.log('Done')
+    })
   }
 
   getExistingUserFromUsername =  () => {
@@ -141,8 +142,6 @@ class App extends Component {
 
     return metrics
   }
-
-
 
 
   render() {
