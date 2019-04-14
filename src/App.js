@@ -78,9 +78,9 @@ class App extends Component {
     console.log(AWS.config.credentials)
     this.getExistingUserFromUsername()
 
-    Auth.currentUserCredentials().then((credentials) => {
-      console.log(credentials)
-    })
+    // Auth.currentUserCredentials().then((credentials) => {
+    //   console.log(credentials)
+    // })
   }
 
   getExistingUserFromUsername = () => {
