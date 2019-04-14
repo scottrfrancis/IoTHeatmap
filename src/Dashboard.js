@@ -1,5 +1,6 @@
-import Amplify from 'aws-amplify'
+import Amplify, { Auth } from 'aws-amplify'
 import React, { Component } from 'react'
+import AWS from 'aws-sdk'
 import { AWSIoTProvider } from '@aws-amplify/pubsub/lib/Providers'
 import awsiot from './aws-iot'
 import { PubSub } from 'aws-amplify'
@@ -9,27 +10,40 @@ import HeatMap from 'react-heatmap-grid'
 const MaxSamples = 50
 const Board_id_label = "Board_id"
 
-Amplify.addPluggable( new AWSIoTProvider(awsiot) )
-PubSub.configure()
-
 
 class Dashboard extends Component {
-    constructor(props) {
-      super(props)
+  constructor(props) {
+    super(props)
 
-      this.state = {
-        messages: [],       // reverse-time ordered FIFO of last MaxSamples
-        metrics: ["Time"]   // metrics accummulates all keys ever seen in the messages -- but Time is first measurement
-      }
+    this.state = {
+      messages: [],       // reverse-time ordered FIFO of last MaxSamples
+      metrics: ["Time"]   // metrics accummulates all keys ever seen in the messages -- but Time is first measurement
     }
 
-    componentDidMount() {
-      PubSub.subscribe('freertos/demos/sensors/Discovery-02').subscribe({
+    // Amplify.addPluggable( new AWSIoTProvider(awsiot) )
+    // PubSub.configure()
+  }
+
+  componentDidMount() {
+    Auth.currentUserCredentials().then((credentials) => {
+      console.log(credentials)
+
+      AWS.config.update({
+        credentials: credentials
+      })
+      console.log(AWS.config)
+
+      PubSub.subscribe('freertos/demos/sensors/#').subscribe({
         next: data => this.handleTopicMessage(data.value),
         error: error => console.log(error),
         close: () => console.log('Done')
+      }).catch((error) => {
+        console.log(error)
       })
-    }
+    }).catch((error) => {
+      console.log(error)
+    })
+  }
 
   handleTopicMessage(message) {
     message["Time"] = new Date().toLocaleTimeString()
@@ -72,6 +86,8 @@ class Dashboard extends Component {
   }
 
   render() {
+    console.log('Dashboard is rendering')
+
     const TableLabelsToHide = ["Time", "Board_id"]
     const ExtraLabelsToHide = ["Gyro_X", "Gyro_Y", "Gyro_Z"]
     const tLabels = this.state.metrics.filter(l => !ExtraLabelsToHide.includes(l))
@@ -86,6 +102,7 @@ class Dashboard extends Component {
 
     return (
       <div>
+        <h3>Dashboard</h3>
         <div className="HeatMap">
         <HeatMap
           xLabels={xLabels} yLabels={yLabels} data={data}
@@ -112,8 +129,6 @@ class Dashboard extends Component {
       </div>
     )
   }
-
-
 }
 
 export default Dashboard

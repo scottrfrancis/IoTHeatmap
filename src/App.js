@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
 import './App.css'
-import Amplify, { Auth } from 'aws-amplify'
+import Amplify, { Auth, PubSub } from 'aws-amplify'
 import awsconfig from './aws-exports'
-// import { AWSIoTProvider } from '@aws-amplify/pubsub/lib/Providers'
-// import awsiot from './aws-iot'
+import { AWSIoTProvider } from '@aws-amplify/pubsub/lib/Providers'
+import awsiot from './aws-iot'
 import AWS from 'aws-sdk'
 // import HeatMap from 'react-heatmap-grid'
 import Signup from './Signup'
@@ -11,27 +11,17 @@ import Credentials from './Credentials'
 import Dashboard from './Dashboard'
 
 
-// const MaxSamples = 50
-// const Board_id_label = "Board_id"
-
-
 // retrieve temporary AWS credentials and sign requests
 Auth.configure(awsconfig);
-
 Amplify.configure(awsconfig);
 
-// Amplify.addPluggable( new AWSIoTProvider(awsiot) )
-// PubSub.configure()
-
-// Auth.currentCredentials().then((creds) =>{
-//   console.log(creds)
-// })
+Amplify.addPluggable( new AWSIoTProvider(awsiot) )
+PubSub.configure()
 
 AWS.config.update({
   region: awsconfig.aws_cognito_region
 })
 updateAWSCredsForAnonymous()
-
 
 function updateAWSCredsForAnonymous() {
   AWS.config.update({
@@ -51,73 +41,51 @@ class App extends Component {
 
       studentId: window.location.pathname.split("/")[1],  // requested id
       existingUser: null,
-      isUserLoggedIn: false,
-
-      // messages: [],       // reverse-time ordered FIFO of last MaxSamples
-      // metrics: ["Time"]   // metrics accummulates all keys ever seen in the messages -- but Time is first measurement
+      isUserLoggedIn: false
     }
 
-    // this.displayMetric = this.displayMetric.bind(this)
-    this.refreshSession = this.refreshSession.bind(this)
+    this.refreshSessionAndCredentials = this.refreshSessionAndCredentials.bind(this)
     this.getExistingUserFromUsername = this.getExistingUserFromUsername.bind(this)
     this.onUserSignIn = this.onUserSignIn.bind(this)
     this.onUserSignOut = this.onUserSignOut.bind(this)
  }
 
-  refreshSession = () => {
+  refreshSessionAndCredentials = () => {
     let newSession = null
 
-    return( new Promise((resolve, reject) => {
-      Auth.currentSession().then((session) => {
-        console.log(session)
-        newSession = session
-        // resolve(session)
-      })
-      .catch((error) => {
-        console.log(error)
-        if (error !== 'No current user') {
-          reject(error)
-        }
-      })
-      .finally(() => {
-        this.setState({ isAuthenticating: false })
-        resolve( newSession )
-      })
-    }) )
+    Auth.currentSession().then((session) => {
+      console.log(session)
+      newSession = session
+    })
+    .then((credentials) => {
+      console.log(credentials)
+      newSession = credentials
+    })
+    .catch((error) => {
+      console.log(error)
+      if (error === 'No current user') {
+          updateAWSCredsForAnonymous()
+      }
+    })
+    .finally(() => {
+      this.setState({ isAuthenticating: false })
+    })
   }
 
   async componentDidMount() {
-   this.refreshSession().then(() => {
-      console.log('session refreshed')
-      this.getExistingUserFromUsername()
-    })
-
-      // PubSub.subscribe('freertos/demos/sensors/Discovery-02').subscribe({
-      //   next: data => this.handleTopicMessage(data.value),
-      //   error: error => console.log(error),
-      //   close: () => console.log('Done')
-      // })
-    // })
-  }
-
-  getExistingUserFromUsername = () => {
-    // if (this.state.isAuthenticating) {
-    //   console.log('pending authentication')
-    //   // return
-    // }
+    await this.refreshSessionAndCredentials()
+    console.log('session refreshed')
+    console.log(AWS.config.credentials)
+    this.getExistingUserFromUsername()
 
     Auth.currentUserCredentials().then((credentials) => {
       console.log(credentials)
+    })
+  }
 
-      // if (credentials.expired) {
-      //   console.log(`creds expired ${credentials.accessKeyId}`)
-      //   // this.setState({ isAuthenticating: true })
-      //   // this.refreshSession().then(() => {
-      //   //   this.getExistingUserFromUsername()
-      //   // })
-
-      //   // return
-      // }
+  getExistingUserFromUsername = () => {
+    Auth.currentUserCredentials().then((credentials) => {
+      console.log(credentials)
 
       let cognitoProvider = new AWS.CognitoIdentityServiceProvider({
         credentials: Auth.essentialCredentials(credentials)
@@ -153,62 +121,9 @@ class App extends Component {
   }
 
 
-  // handleTopicMessage(message) {
-  //   message["Time"] = new Date().toLocaleTimeString()
-  //   console.log(`received message ${JSON.stringify(message)}`)
-
-  //   this.setState({
-  //     messages: [message, ...this.state.messages.slice(0, MaxSamples - 1)],
-  //     metrics: [...new Set([...this.state.metrics, ...Object.keys(message)])],
-  //   })
-  // }
-
-  // displayMetric(value, label, board_id) {
-  //   const units = {
-  //     'Temp': "\xB0C",
-  //     'Hum':  "%",
-  //     'Press': "mBar",
-  //     'Accel_X': "cm/S\xB2",
-  //     'Accel_Y': "cm/S\xB2",
-  //     'Accel_Z': "cm/S\xB2",
-  //     'Gyro_X': "\xB0/S",
-  //     'Gyro_Y': "\xB0/S",
-  //     'Gyro_Z': "\xB0/S",
-  //     'Magn_X': "mGa",
-  //     'Magn_Y': "mGa",
-  //     'Magn_Z': "mGa"
-  //   }
-
-  //   return(`${value} ${units[label]}`)
-  // }
-
-  // getLatestBoardMetrics(board_id, labels) {
-  //   const message = this.state.messages.map((m) => (m[Board_id_label] === board_id) && m).reduce((a,c) => a || c, undefined)
-
-  //   let metrics = new Array(labels.length)
-  //     .fill(0)
-  //   if (message !== false)
-  //     metrics = metrics.map((l, i) => message[labels[i]])
-
-  //   return metrics
-  // }
-
-
   render() {
     if (this.state.isAuthenticating)
       return null
-
-    // const TableLabelsToHide = ["Time", "Board_id"]
-    // const ExtraLabelsToHide = ["Gyro_X", "Gyro_Y", "Gyro_Z"]
-    // const tLabels = this.state.metrics.filter(l => !ExtraLabelsToHide.includes(l))
-    // const xLabels = this.state.metrics.filter(l => !TableLabelsToHide.includes(l) && !ExtraLabelsToHide.includes(l))
-    // const yLabels = [...new Set(this.state.messages.map((m) => m[Board_id_label]))].sort()
-    // const data = []
-    // for (let i = 0; i < yLabels.length; i++) {
-    //   const row = this.getLatestBoardMetrics(yLabels[i], xLabels)
-    //   data.push(row)
-    // }
-
 
     return (
       <div className="App">
@@ -227,6 +142,7 @@ class App extends Component {
             bucketName={'sttechnologytour-scofranc'}
             username={this.state.studentId}
         />}
+        <Dashboard />
       </div>
     )
   }
