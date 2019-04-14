@@ -17,6 +17,14 @@
   color: #61dafb;
 }
 
+.Credentials {
+  text-align: left;
+  font-family: monospace;
+  margin-left: 20px;
+  background-color: #eeeeee;
+  color: #005588;
+}
+
 .HeatMap {
   margin-left: auto;
   margin-right: auto;

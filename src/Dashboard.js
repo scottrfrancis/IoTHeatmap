@@ -1,5 +1,6 @@
 import Amplify, { Auth } from 'aws-amplify'
 import React, { Component } from 'react'
+import { Col } from "react-bootstrap";
 import AWS from 'aws-sdk'
 import { AWSIoTProvider } from '@aws-amplify/pubsub/lib/Providers'
 import awsiot from './aws-iot'
@@ -102,30 +103,32 @@ class Dashboard extends Component {
 
     return (
       <div>
-        <h3>Dashboard</h3>
-        <div className="HeatMap">
-        <HeatMap
-          xLabels={xLabels} yLabels={yLabels} data={data}
-          yLabelWidth = {150} background = {"#ee9900"} squares={true} height={75}
-          cellRender={this.displayMetric}
-        />
-        </div>
-        <div>
-          <br />
-          <table>
-            <thead>
-              <tr>
-                {(tLabels.length > 1) && tLabels
-                  .map((m, j) => {return(<th key={j}>{m}</th>)})}
-              </tr>
-            </thead>
-            <tbody>
-              {this.state.messages.map((t,i) => {
-                return(<tr key={i}>{tLabels.map((m, j) => {
-                  return(<td key={j}>{t[m]}</td>)})}</tr>)})}
-            </tbody>
-          </table>
-        </div>
+        <Col sm={8}>
+          <h3>Dashboard</h3>
+          <div className="HeatMap">
+          <HeatMap
+            xLabels={xLabels} yLabels={yLabels} data={data}
+            yLabelWidth = {150} background = {"#ee9900"} squares={true} height={75}
+            cellRender={this.displayMetric}
+          />
+          </div>
+          <div>
+            <br />
+            <table>
+              <thead>
+                <tr>
+                  {(tLabels.length > 1) && tLabels
+                    .map((m, j) => {return(<th key={j}>{m}</th>)})}
+                </tr>
+              </thead>
+              <tbody>
+                {this.state.messages.map((t,i) => {
+                  return(<tr key={i}>{tLabels.map((m, j) => {
+                    return(<td key={j}>{t[m]}</td>)})}</tr>)})}
+              </tbody>
+            </table>
+          </div>
+        </Col>
       </div>
     )
   }

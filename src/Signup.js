@@ -143,7 +143,7 @@ class Signup extends Component {
       return(
         <Col sm={controlSize}>
           <Button onClick={this.logOut}
-            block size="large" type="button"
+            size="sm" type="button"
           >Log out</Button>
         </Col>
       )
@@ -164,7 +164,7 @@ class Signup extends Component {
           </FormGroup>
           <Col sm={controlSize}>
             <Button
-              block size="large" type="submit" disabled={!this.passwordNotEmpty}
+              size="lg" type="submit" disabled={!this.passwordNotEmpty}
             >Log in</Button>
           </Col>
         </Form>
@@ -235,17 +235,21 @@ class Signup extends Component {
     if (this.props.isUserLoggedIn) {
       return(
         <div>
-          <h1>{this.props.username} Logged In</h1>
-          {this.logOutForm()}
+          <Col sm={6}>
+            <h4>{this.props.username} Logged In</h4>
+            {this.logOutForm()}
+          </Col>
         </div>
       )
     } else if (this.isExistingUserConfirmed()) {
       // show password to login
       return(
         <div>
-          <h1>Enter password for {this.props.username}</h1>
-          {this.errorAlert()}
-          {this.logInForm()}
+          <Col sm={8}>
+            <h4>Enter password for {this.props.username}</h4>
+            {this.errorAlert()}
+            {this.logInForm()}
+          </Col>
         </div>
       )
     } else if (this.existingUserNeedsToConfirm()) {
