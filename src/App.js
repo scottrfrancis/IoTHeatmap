@@ -102,6 +102,12 @@ class App extends Component {
     if (this.state.isAuthenticating)
       return null
 
+    let thingName = '#'
+    if (this.state.studentId !== "") {
+      thingName = this.state.studentId
+      thingName = 'Discovery-02'
+    }
+
     return (
       <div className="App">
         {(this.state.studentId !== "") &&
@@ -119,7 +125,7 @@ class App extends Component {
             bucketName={'sttechnologytour-scofranc'}
             username={this.state.studentId}
         />}
-        <Dashboard2 />
+        <Dashboard2 thingName={thingName} />
       </div>
     )
   }

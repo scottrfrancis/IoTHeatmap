@@ -77,7 +77,7 @@ class Dashboard2 extends Component {
         credentials: essentialCreds
       })
       this.attachIotPolicy(creds._identityId).then(() => {
-        this.thingName = "Discovery-02"
+        // this.thingName = "Discovery-02"
         try {
           this.shadows = AWSIoTData.thingShadow({
             region: awsiot.aws_pubsub_region,
@@ -98,13 +98,13 @@ class Dashboard2 extends Component {
           // After connecting to the AWS IoT platform, register interest in the
           // Thing Shadow
           if (!this.shadowRegistered) {
-            console.log('registering ' + this.thingName);
+            console.log('registering ' + this.props.thingName);
             this.shadows.register(this.thingName, {}, function() {
               this.getThingState();
             }.bind(this));
             this.shadowRegistered = true;
 
-            this.shadows.subscribe('freertos/demos/sensors/Discovery-02', {},
+            this.shadows.subscribe(`freertos/demos/sensors/${this.props.thingName}`, {},
               (err, granted) => {
                 if (err) console.log(err)
                 else {
