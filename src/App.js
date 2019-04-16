@@ -1,11 +1,10 @@
 import React, { Component } from 'react'
 import './App.css'
-import Amplify, { Auth, PubSub } from 'aws-amplify'
+import Amplify, { Auth } from 'aws-amplify'
 import awsconfig from './aws-exports'
 import { AWSIoTProvider } from '@aws-amplify/pubsub/lib/Providers'
 import awsiot from './aws-iot'
 import AWS from 'aws-sdk'
-// import HeatMap from 'react-heatmap-grid'
 import Signup from './Signup'
 import Credentials from './Credentials'
 import Dashboard2 from './Dashboard2'
@@ -14,9 +13,6 @@ import Dashboard2 from './Dashboard2'
 // retrieve temporary AWS credentials and sign requests
 Auth.configure(awsconfig);
 Amplify.configure(awsconfig);
-
-Amplify.addPluggable( new AWSIoTProvider(awsiot) )
-PubSub.configure()
 
 AWS.config.update({
   region: awsconfig.aws_cognito_region
@@ -51,15 +47,8 @@ class App extends Component {
  }
 
   refreshSessionAndCredentials = () => {
-    let newSession = null
-
     Auth.currentSession().then((session) => {
       console.log(session)
-      newSession = session
-    })
-    .then((credentials) => {
-      console.log(credentials)
-      newSession = credentials
     })
     .catch((error) => {
       console.log(error)
@@ -74,15 +63,11 @@ class App extends Component {
 
   async componentDidMount() {
     await this.refreshSessionAndCredentials()
-    console.log('session refreshed')
-    console.log(AWS.config.credentials)
     this.getExistingUserFromUsername()
   }
 
   getExistingUserFromUsername = () => {
     Auth.currentUserCredentials().then((credentials) => {
-      console.log(credentials)
-
       let cognitoProvider = new AWS.CognitoIdentityServiceProvider({
         credentials: Auth.essentialCredentials(credentials)
       })
@@ -101,7 +86,6 @@ class App extends Component {
 
   onUserSignIn =  () => {
     Auth.currentUserCredentials().then((creds) => {
-      console.log(creds)
       AWS.config.update({
         credentials: creds
       })
