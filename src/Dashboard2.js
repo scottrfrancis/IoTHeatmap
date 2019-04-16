@@ -128,7 +128,7 @@ class Dashboard2 extends Component {
           console.log(`received message on ${topic}`)
           console.log(message.toString())
 
-
+          this.handleTopicMessage(JSON.parse(message))
         })
 
         this.shadows.on('status', function(thingName, stat, clientToken, stateObject) {
