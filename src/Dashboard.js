@@ -21,26 +21,56 @@ class Dashboard extends Component {
       metrics: ["Time"]   // metrics accummulates all keys ever seen in the messages -- but Time is first measurement
     }
 
+    console.log('Dashboard constructed')
+
     // Amplify.addPluggable( new AWSIoTProvider(awsiot) )
     // PubSub.configure()
   }
 
-  componentDidMount() {
-    Auth.currentUserCredentials().then((credentials) => {
-      console.log(credentials)
+  getCurrentCredentials = () => {
+    return new Promise((resolve, reject) => {
+      Auth.currentUserCredentials()
+        .then(creds => resolve(creds))
+        .catch(err => reject(err))
+    })
+  }
 
-      AWS.config.update({
-        credentials: credentials
+  attachIotPolicy = () => {
+    return new Promise((resolve, reject) => {
+      this.getCurrentCredentials()
+        .then((credentials) => {
+          Amplify.addPluggable(new AWSIoTProvider(awsiot))
+
+        resolve()
+        })
+      .catch((error) => {
+        console.log(error)
+        reject(error)
       })
-      console.log(AWS.config)
+    })
+  }
 
-      PubSub.subscribe('freertos/demos/sensors/#').subscribe({
+  componentDidMount() {
+    console.log('Dashboard mounted')
+    // Auth.currentUserCredentials().then((credentials) => {
+    //   console.log(credentials)
+
+    //   AWS.config.update({
+    //     credentials: credentials
+    //   })
+    //   console.log(AWS.config)
+
+    this.attachIotPolicy().then(() => {
+      // PubSub.configure()
+
+      const sub = PubSub.subscribe('freertos/demos/sensors/#')
+      const subscription = sub.subscribe({
         next: data => this.handleTopicMessage(data.value),
         error: error => console.log(error),
         close: () => console.log('Done')
-      }).catch((error) => {
-        console.log(error)
-      })
+      }) //.catch((error) => {
+        // console.log(error)
+      // })
     }).catch((error) => {
       console.log(error)
     })

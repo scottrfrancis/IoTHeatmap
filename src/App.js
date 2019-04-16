@@ -8,7 +8,7 @@ import AWS from 'aws-sdk'
 // import HeatMap from 'react-heatmap-grid'
 import Signup from './Signup'
 import Credentials from './Credentials'
-import Dashboard from './Dashboard'
+import Dashboard2 from './Dashboard2'
 
 
 // retrieve temporary AWS credentials and sign requests
@@ -77,10 +77,6 @@ class App extends Component {
     console.log('session refreshed')
     console.log(AWS.config.credentials)
     this.getExistingUserFromUsername()
-
-    // Auth.currentUserCredentials().then((credentials) => {
-    //   console.log(credentials)
-    // })
   }
 
   getExistingUserFromUsername = () => {
@@ -120,7 +116,6 @@ class App extends Component {
     this.getExistingUserFromUsername()
   }
 
-
   render() {
     if (this.state.isAuthenticating)
       return null
@@ -142,10 +137,10 @@ class App extends Component {
             bucketName={'sttechnologytour-scofranc'}
             username={this.state.studentId}
         />}
-        <Dashboard />
+        <Dashboard2 />
       </div>
     )
   }
 }
 
-export default App;
+export default App

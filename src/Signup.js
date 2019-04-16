@@ -13,6 +13,7 @@ class Signup extends Component {
     this.state = {
       name: "",
       email: "",
+      company: "",
       password: "",
       confirmationCode: "",
 
@@ -116,7 +117,8 @@ class Signup extends Component {
       password: this.state.password,
       attributes: {
         name: this.state.name,
-        email: this.state.email
+        email: this.state.email,
+        'custom:company': this.state.company
     }})
     .catch((err) => {
       console.log(err)
@@ -201,15 +203,22 @@ class Signup extends Component {
         <FormGroup controlId="name" size="large">
           <FormLabel column sm={labelSize}>Name</FormLabel>
           <Col sm={controlSize}>
-            <FormControl autoComplete="on" type="text" onChange={this.handleChange}
+            <FormControl autoComplete="on" type="text" onChange={this.handleChange} autoFocus
               value={this.state.family_name} />
+          </Col>
+        </FormGroup>
+        <FormGroup controlId="company" size="large">
+          <FormLabel column sm={labelSize}>Company</FormLabel>
+          <Col sm={controlSize}>
+            <FormControl autoComplete="on" type="text" onChange={this.handleChange}
+              value={this.state.company} />
           </Col>
         </FormGroup>
         <FormGroup controlId="email" size="large">
           <FormLabel column sm={labelSize}>Email</FormLabel>
           <Col sm={controlSize}>
             <FormControl
-              autoFocus autoComplete="on" type="email" onChange={this.handleChange}
+              autoComplete="on" type="email" onChange={this.handleChange}
               value={this.state.email} />
           </Col>
         </FormGroup>
