@@ -1,8 +1,7 @@
-import Amplify, { Auth } from 'aws-amplify'
+import { Auth } from 'aws-amplify'
 import React, { Component } from 'react'
 import { Col } from "react-bootstrap";
 import AWS from 'aws-sdk'
-import { AWSIoTProvider } from '@aws-amplify/pubsub/lib/Providers'
 import awsconfig from './aws-exports'
 import awsiot from './aws-iot'
 import HeatMap from 'react-heatmap-grid'
@@ -25,8 +24,6 @@ class Dashboard2 extends Component {
 
     this.onConnect = this.onConnect.bind(this)
     this.onMessage = this.onMessage.bind(this)
-
-    console.log('Dashboard constructed')
   }
 
   getCurrentCredentials = () => {
@@ -49,7 +46,6 @@ class Dashboard2 extends Component {
           console.log(err)
           reject(err)
         } else {
-          console.log(data)
           resolve(data)
         }
       })
@@ -72,8 +68,6 @@ class Dashboard2 extends Component {
   }
 
   componentDidMount() {
-    console.log('Dashboard mounted')
-
     this.getCurrentCredentials().then((creds) => {
       console.log(creds)
       const essentialCreds = creds;
@@ -91,12 +85,11 @@ class Dashboard2 extends Component {
             clientId: awsconfig.aws_user_pools_web_client_id + (Math.floor((Math.random() * 100000) + 1)),
             protocol: 'wss',
             maximumReconnectTimeMs: 8000,
-            debug: true,
+            // debug: true,
             accessKeyId: essentialCreds.accessKeyId,
             secretKey: essentialCreds.secretAccessKey,
             sessionToken: essentialCreds.sessionToken
           })
-          console.log(this.shadows)
         } catch (err) {
           console.log('error: ' + err)
         }
@@ -107,7 +100,6 @@ class Dashboard2 extends Component {
           if (!this.shadowRegistered) {
             console.log('registering ' + this.thingName);
             this.shadows.register(this.thingName, {}, function() {
-              console.log('register callback');
               this.getThingState();
             }.bind(this));
             this.shadowRegistered = true;
@@ -125,9 +117,6 @@ class Dashboard2 extends Component {
         }.bind(this));
 
         this.shadows.on('message', (topic, message) => {
-          console.log(`received message on ${topic}`)
-          console.log(message.toString())
-
           this.handleTopicMessage(JSON.parse(message))
         })
 
@@ -157,9 +146,7 @@ class Dashboard2 extends Component {
   }
 
   getThingState() {
-    console.log("getting thing "+ this.thingName);
     this.clientTokenGet = this.shadows.get(this.thingName);
-    console.log("sent request " + this.clientTokenGet);
   }
 
   handleNewThingState(stateObject) {
@@ -169,15 +156,12 @@ class Dashboard2 extends Component {
     }
 
     var stateChanges = {thingState: stateObject, switched: false};
-
-    // if (this.state.thingState.state) console.log(this.state.thingState.state.reported.pushedAt);
     if (this.state.thingState.state === undefined || stateObject.state.reported.Power !== this.state.thingState.state.reported.Power) {
       this.setState({
         switched: false});
       this.setState(stateChanges);
     }
   }
-
 
   handleTopicMessage(message) {
     message["Time"] = new Date().toLocaleTimeString()
@@ -220,8 +204,6 @@ class Dashboard2 extends Component {
   }
 
   render() {
-    console.log('Dashboard is rendering')
-
     const TableLabelsToHide = ["Time", "Board_id"]
     const ExtraLabelsToHide = ["Gyro_X", "Gyro_Y", "Gyro_Z"]
     const tLabels = this.state.metrics.filter(l => !ExtraLabelsToHide.includes(l))
@@ -232,7 +214,6 @@ class Dashboard2 extends Component {
       const row = this.getLatestBoardMetrics(yLabels[i], xLabels)
       data.push(row)
     }
-
 
     return (
       <div>
