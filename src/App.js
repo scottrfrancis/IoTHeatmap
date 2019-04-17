@@ -105,7 +105,6 @@ class App extends Component {
     let thingName = '#'
     if (this.state.studentId !== "") {
       thingName = this.state.studentId
-      thingName = 'Discovery-02'
     }
 
     return (

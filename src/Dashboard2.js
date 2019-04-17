@@ -23,9 +23,6 @@ class Dashboard2 extends Component {
       metrics: ["Time"]   // metrics accummulates all keys ever seen in the messages -- but Time is first measurement
     }
     this.client = null
-
-    this.onConnect = this.onConnect.bind(this)
-    this.onMessage = this.onMessage.bind(this)
   }
 
   getCurrentCredentials = () => {
@@ -52,19 +49,6 @@ class Dashboard2 extends Component {
         }
       })
     })
-  }
-
-  onConnect = () => {
-    this.client.subscribe(`${TopicBase}/${this.props.thingName}`, (err, granted) => {
-      if (err) console.log(err)
-      else {
-        console.log(granted)
-      }
-    })
-  }
-
-  onMessage = (topic, message) => {
-    console.log(topic); console.log(message)
   }
 
   componentDidMount() {
