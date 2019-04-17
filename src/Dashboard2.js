@@ -10,8 +10,6 @@ import AWSIoTData from 'aws-iot-device-sdk'
 
 const MaxSamples = 50
 const Board_id_label = "Board_id"
-const PolicyName = 'dashboard-policy'
-const TopicBase = 'freertos/demos/sensors'
 
 
 class Dashboard2 extends Component {
@@ -34,11 +32,11 @@ class Dashboard2 extends Component {
   }
 
   attachIotPolicy = (identityId) => {
-    console.log(`Attaching ${PolicyName} to ${identityId}`)
+    console.log(`Attaching ${awsiot.policy_name} to ${identityId}`)
     return new Promise((resolve, reject) => {
       const iot = new AWS.Iot({apiVersion: '2015-05-28'});
       iot.attachPolicy({
-        policyName: PolicyName,
+        policyName: awsiot.policy_name,
         target: identityId
       }, (err, data) => {
         if (err) {
@@ -87,7 +85,7 @@ class Dashboard2 extends Component {
             }.bind(this));
             this.shadowRegistered = true;
 
-            this.shadows.subscribe(`${TopicBase}/${this.props.thingName}`, {},
+            this.shadows.subscribe(`${awsiot.topic_base}/${this.props.thingName}`, {},
               (err, granted) => {
                 if (err) console.log(err)
                 else {
