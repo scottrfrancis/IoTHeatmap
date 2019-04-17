@@ -143,11 +143,9 @@ class Signup extends Component {
     if (this.props.isUserLoggedIn) {
       // show username and logout
       return(
-        <Col sm={controlSize}>
           <Button onClick={this.logOut}
-            size="sm" type="button"
+            size="sm" type="button" class="btn btn-outline-primary"
           >Log out</Button>
-        </Col>
       )
     }
   }
@@ -158,17 +156,13 @@ class Signup extends Component {
         <Form onSubmit={this.logIn}>
           <FormGroup controlId="password" size="large">
             <FormLabel column sm={labelSize}>Password</FormLabel>
-            <Col sm={controlSize}>
               <FormControl
                 value={this.state.password}
                 onChange={this.handleChange} type="password" autoComplete="off" autoFocus />
-            </Col>
           </FormGroup>
-          <Col sm={controlSize}>
             <Button
-              size="lg" type="submit" disabled={!this.passwordNotEmpty}
+              size="sm" type="submit" disabled={!this.passwordNotEmpty}
             >Log in</Button>
-          </Col>
         </Form>
       )
     }
@@ -202,40 +196,30 @@ class Signup extends Component {
       <Form onSubmit={this.signUp}>
         <FormGroup controlId="name" size="large">
           <FormLabel column sm={labelSize}>Name</FormLabel>
-          <Col sm={controlSize}>
             <FormControl autoComplete="on" type="text" onChange={this.handleChange} autoFocus
               value={this.state.family_name} />
-          </Col>
         </FormGroup>
         <FormGroup controlId="company" size="large">
           <FormLabel column sm={labelSize}>Company</FormLabel>
-          <Col sm={controlSize}>
             <FormControl autoComplete="on" type="text" onChange={this.handleChange}
               value={this.state.company} />
-          </Col>
         </FormGroup>
         <FormGroup controlId="email" size="large">
           <FormLabel column sm={labelSize}>Email</FormLabel>
-          <Col sm={controlSize}>
             <FormControl
               autoComplete="on" type="email" onChange={this.handleChange}
               value={this.state.email} />
-          </Col>
         </FormGroup>
         <FormGroup controlId="password" size="large">
           <FormLabel column sm={labelSize}>Password</FormLabel>
-          <Col sm={controlSize}>
             <FormControl
               value={this.state.password}
               onChange={this.handleChange} type="password" autoComplete="off" />
-          </Col>
         </FormGroup>
-        <Col sm={controlSize}>
           <Button
             block size="large" type="submit"
             disabled={!this.validateSignUpForm()}
           >{'Sign up'}</Button>
-        </Col>
       </Form>
     )
   }
@@ -244,8 +228,8 @@ class Signup extends Component {
     if (this.props.isUserLoggedIn) {
       return(
         <div>
-          <Col sm={6}>
-            <h4>{this.props.username} Logged In</h4>
+          <Col sm={4}>
+            <h6>{this.props.username} Logged In</h6>
             {this.logOutForm()}
           </Col>
         </div>
@@ -254,8 +238,8 @@ class Signup extends Component {
       // show password to login
       return(
         <div>
-          <Col sm={8}>
-            <h4>Enter password for {this.props.username}</h4>
+          <Col sm={3}>
+            <h6>Enter password for {this.props.username}</h6>
             {this.errorAlert()}
             {this.logInForm()}
           </Col>
@@ -265,19 +249,23 @@ class Signup extends Component {
       // show confirmation code form
       return(
         <div>
-          <h1>new user</h1>
+          <Col sm={4}>
+          <h3>new user</h3>
           {this.errorAlert()}
           {this.confirmationForm()}
+          </Col>
         </div>
       )
     } else {
       // R: existingUser should be null
       // show signup form
       return(
-        <div sm="4">
+        <div>
+          <Col sm="6">
           <h1>Please sign up.</h1>
           {this.errorAlert()}
           {this.signupForm()}
+          </Col>
         </div>
       )
     }
