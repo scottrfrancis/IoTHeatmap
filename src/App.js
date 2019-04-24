@@ -30,10 +30,15 @@ class App extends Component {
   constructor(props) {
     super(props)
 
+    let studentId = window.location.pathname.split("/")[1]  // requested id
+    if (studentId === 'index.html') {
+      studentId = ""
+    }
+
     this.state = {
       isAuthenticating: true,
 
-      studentId: window.location.pathname.split("/")[1],  // requested id
+      studentId: studentId,
       existingUser: null,
       isUserLoggedIn: false
     }
