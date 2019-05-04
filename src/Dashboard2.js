@@ -92,7 +92,7 @@ class Dashboard2 extends Component {
             }.bind(this));
             this.shadowRegistered = true;
 
-            this.shadows.subscribe( //`$aws/things/${thingName}/shadow/update`
+            this.shadows.subscribe(
               `${awsiot.topic_base}/${thingName}`
               , {},
               (err, granted) => {
@@ -156,6 +156,22 @@ class Dashboard2 extends Component {
     console.log(stateObject)
     if (stateObject.state.reported === undefined) {
       console.warn("no reported thing state");
+    } else {
+      let message = {
+        "Board_id" : this.props.thingName,
+      }
+
+      if (stateObject.state.reported.LEDstate !== undefined) {
+        message['LEDstate'] = stateObject.state.reported.LEDstate
+      }
+
+      if (stateObject.state.reported.accel !== undefined) {
+        message['Accel_X'] = stateObject.state.reported.accel.x
+        message['Accel_Y'] = stateObject.state.reported.accel.y
+        message['Accel_Z'] = stateObject.state.reported.accel.z
+      }
+
+      this.handleTopicMessage(message)
     }
   }
 

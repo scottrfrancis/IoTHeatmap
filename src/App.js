@@ -166,7 +166,7 @@ class App extends Component {
               <FormControl
                 onChange={this.handleChange} type="text" autoComplete="on" autoFocus />
             </FormGroup>
-            <Button size="sm" type="submit" disabled={!this.studentNumberNotEmpty()}>Set</Button>
+            <Button size="sm" type="submit" disabled={!this.studentNumberNotEmpty()}>Go</Button>
           </Form>
         </Col>
         {false && (this.state.studentId !== "") &&
@@ -184,9 +184,7 @@ class App extends Component {
             bucketName={'sttechnologytour-scofranc'}
             username={this.state.studentId}
         />}
-        {thingName}
-        {true &&
-        <Dashboard2 thingName={thingName} />}
+        <Dashboard2 thingName={thingName} />
       </div>
     )
   }
