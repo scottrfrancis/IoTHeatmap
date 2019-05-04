@@ -155,16 +155,8 @@ class Dashboard2 extends Component {
     console.log('>handleNewThingState')
     console.log(stateObject)
     if (stateObject.state.reported === undefined) {
-      // stateObject.state.reported = stateObject.state.desired;
       console.warn("no reported thing state");
     }
-
-    // var stateChanges = {thingState: stateObject, switched: false};
-    // if (this.state.thingState.state === undefined || stateObject.state.reported.Power !== this.state.thingState.state.reported.Power) {
-    //   this.setState({
-    //     switched: false});
-    //   this.setState(stateChanges);
-    // }
   }
 
   handleTopicMessage(message) {
