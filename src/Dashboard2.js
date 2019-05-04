@@ -1,11 +1,14 @@
 import { Auth } from 'aws-amplify'
 import React, { Component } from 'react'
-import { Col } from "react-bootstrap";
+import { Button, Col } from "react-bootstrap";
 import AWS from 'aws-sdk'
 import awsconfig from './aws-exports'
 import awsiot from './aws-iot'
 import HeatMap from 'react-heatmap-grid'
 import AWSIoTData from 'aws-iot-device-sdk'
+
+import Switch from 'react-toggle-switch'
+
 
 
 const MaxSamples = 50
@@ -17,12 +20,17 @@ class Dashboard2 extends Component {
     super(props)
 
     this.state = {
+      LEDstate: 0,
       messages: [],       // reverse-time ordered FIFO of last MaxSamples
       metrics: ["Time"]   // metrics accummulates all keys ever seen in the messages -- but Time is first measurement
     }
     this.client = null
 
     this.setupSubscription = this.setupSubscription.bind(this)
+
+    this.isLEDOn = this.isLEDOn.bind(this)
+    this.toggleLED = this.toggleLED.bind(this)
+    this.updateAccelerometer = this.updateAccelerometer.bind(this)
   }
 
   getCurrentCredentials = () => {
@@ -167,6 +175,12 @@ class Dashboard2 extends Component {
       }
 
       this.handleTopicMessage(message)
+
+      if (stateObject.state.reported.LEDstate !== undefined) {
+        this.setState({
+          LEDstate: stateObject.state.reported.LEDstate
+        })
+      }
     }
   }
 
@@ -210,6 +224,22 @@ class Dashboard2 extends Component {
     return metrics
   }
 
+  isLEDOn = () => {
+    return this.state.LEDstate
+  }
+
+  toggleLED = () => {
+    console.log('LED')
+    const newState = {state: {desired: {LEDstate: (this.state.LEDstate) ? 0 : 1}}}
+    this.clientTokenUpdate = this.shadows.update(this.props.thingName, newState)
+  }
+
+  updateAccelerometer = () => {
+    console.log('update accel')
+    const newState = {state: {desired: {accelUpdate: 1}}}
+    this.clientTokenUpdate = this.shadows.update(this.props.thingName, newState)
+  }
+
   render() {
     const TableLabelsToHide = ["Time", "Board_id"]
     const ExtraLabelsToHide = ["Gyro_X", "Gyro_Y", "Gyro_Z"]
@@ -225,6 +255,15 @@ class Dashboard2 extends Component {
     return (
       <div>
         <Col sm={8}>
+          <div className="App-canvasContainer">
+          <h4>LED Status</h4>
+            <Switch on={this.isLEDOn()} onClick={this.toggleLED} />
+          </div>
+          <div>
+            <Button onClick={this.updateAccelerometer}
+              size="sm" type="button" class="btn btn-outline-primary"
+            >Update Acclerometer</Button>
+          </div>
           <h3>Dashboard</h3>
           <div className="HeatMap">
           <HeatMap
