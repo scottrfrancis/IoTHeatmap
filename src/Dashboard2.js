@@ -261,7 +261,7 @@ class Dashboard2 extends Component {
           </div>
           <div>
             <Button onClick={this.updateAccelerometer}
-              size="sm" type="button" class="btn btn-outline-primary"
+              size="sm" type="button" class="btn btn-success" variant="success"
             >Update Acclerometer</Button>
           </div>
           <h3>Dashboard</h3>
