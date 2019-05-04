@@ -21,6 +21,8 @@ class Dashboard2 extends Component {
       metrics: ["Time"]   // metrics accummulates all keys ever seen in the messages -- but Time is first measurement
     }
     this.client = null
+
+    this.setupSubscription = this.setupSubscription.bind(this)
   }
 
   getCurrentCredentials = () => {
@@ -49,7 +51,8 @@ class Dashboard2 extends Component {
     })
   }
 
-  componentDidMount() {
+
+  setupSubscription = (thingName) => {
     this.getCurrentCredentials().then((creds) => {
       console.log(creds)
       const essentialCreds = creds;
@@ -66,7 +69,8 @@ class Dashboard2 extends Component {
             clientId: awsconfig.aws_user_pools_web_client_id + (Math.floor((Math.random() * 100000) + 1)),
             protocol: 'wss',
             maximumReconnectTimeMs: 8000,
-            // debug: true,
+            debug: true,
+
             accessKeyId: essentialCreds.accessKeyId,
             secretKey: essentialCreds.secretAccessKey,
             sessionToken: essentialCreds.sessionToken
@@ -78,14 +82,19 @@ class Dashboard2 extends Component {
         this.shadows.on('connect', function() {
           // After connecting to the AWS IoT platform, register interest in the
           // Thing Shadow
+          console.log('..onConnect')
           if (!this.shadowRegistered) {
-            console.log('registering ' + this.props.thingName);
-            this.shadows.register(this.thingName, {}, function() {
+            console.log('registering ' + thingName);
+
+            this.shadows.register(thingName, {}, function() {
+              console.log('...registered')
               this.getThingState();
             }.bind(this));
             this.shadowRegistered = true;
 
-            this.shadows.subscribe(`${awsiot.topic_base}/${this.props.thingName}`, {},
+            this.shadows.subscribe( //`$aws/things/${thingName}/shadow/update`
+              `${awsiot.topic_base}/${thingName}`
+              , {},
               (err, granted) => {
                 if (err) console.log(err)
                 else {
@@ -98,10 +107,12 @@ class Dashboard2 extends Component {
         }.bind(this));
 
         this.shadows.on('message', (topic, message) => {
+          console.log("..onMessage")
           this.handleTopicMessage(JSON.parse(message))
         })
 
         this.shadows.on('status', function(thingName, stat, clientToken, stateObject) {
+          console.log('..onStatus')
           console.log('Operation ' + clientToken + " status: " + stat);
           if (clientToken === this.clientTokenUpdate) {
             if (stat === 'accepted') {
@@ -119,29 +130,41 @@ class Dashboard2 extends Component {
           console.log('foreignStateChange ' + operation);
           console.log(stateObject);
           if (operation === "update") {
+            console.log('!update')
             this.handleNewThingState(stateObject);
           }
         }.bind(this))
-      })
+      } )
     })
   }
 
+  componentWillReceiveProps = (nextProps) => {
+    console.log(`dashboard will get props: ${nextProps}`)
+
+    if (this.props.thingName !== nextProps.thingName) {
+      console.log('need to re-SUBSCRIBE')
+      this.setupSubscription(nextProps.thingName)
+    }
+  }
+
   getThingState() {
-    this.clientTokenGet = this.shadows.get(this.thingName);
+    this.clientTokenGet = this.shadows.get(this.props.thingName);
   }
 
   handleNewThingState(stateObject) {
+    console.log('>handleNewThingState')
+    console.log(stateObject)
     if (stateObject.state.reported === undefined) {
-      stateObject.state.reported = stateObject.state.desired;
-      console.warn("no reported thing state, using desired");
+      // stateObject.state.reported = stateObject.state.desired;
+      console.warn("no reported thing state");
     }
 
-    var stateChanges = {thingState: stateObject, switched: false};
-    if (this.state.thingState.state === undefined || stateObject.state.reported.Power !== this.state.thingState.state.reported.Power) {
-      this.setState({
-        switched: false});
-      this.setState(stateChanges);
-    }
+    // var stateChanges = {thingState: stateObject, switched: false};
+    // if (this.state.thingState.state === undefined || stateObject.state.reported.Power !== this.state.thingState.state.reported.Power) {
+    //   this.setState({
+    //     switched: false});
+    //   this.setState(stateChanges);
+    // }
   }
 
   handleTopicMessage(message) {

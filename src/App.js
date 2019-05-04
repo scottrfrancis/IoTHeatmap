@@ -3,9 +3,11 @@ import './App.css'
 import Amplify, { Auth } from 'aws-amplify'
 import awsconfig from './aws-exports'
 import AWS from 'aws-sdk'
+import { Button, Col, Form, FormGroup, FormControl, FormLabel } from "react-bootstrap";
 import Signup from './Signup'
 import Credentials from './Credentials'
 import Dashboard2 from './Dashboard2'
+// import Student from './Student'
 
 
 // retrieve temporary AWS credentials and sign requests
@@ -33,7 +35,8 @@ class App extends Component {
     this.state = {
       isAuthenticating: true,
 
-      studentId: window.location.pathname.split("/")[1],  // requested id
+      studentNumber: null,
+      studentId: '#', //window.location.pathname.split("/")[1],  // requested id
       existingUser: null,
       isUserLoggedIn: false
     }
@@ -42,6 +45,8 @@ class App extends Component {
     this.getExistingUserFromUsername = this.getExistingUserFromUsername.bind(this)
     this.onUserSignIn = this.onUserSignIn.bind(this)
     this.onUserSignOut = this.onUserSignOut.bind(this)
+    // this.onSetStudentNumber = this.onSetStudentNumber.bind(this)
+    this.selectStudent = this.selectStudent.bind(this)
  }
 
   refreshSessionAndCredentials = () => {
@@ -82,6 +87,12 @@ class App extends Component {
     })
   }
 
+  handleChange = event => {
+    this.setState({
+      [event.target.id]: event.target.value
+    })
+  }
+
   onUserSignIn =  () => {
     Auth.currentUserCredentials().then((creds) => {
       AWS.config.update({
@@ -98,18 +109,67 @@ class App extends Component {
     this.getExistingUserFromUsername()
   }
 
+  studentNumberNotEmpty = () => {
+    return (this.state.studentNumber !== null) && (this.state.studentNumber.length !== 0)
+  }
+
+  // onSetStudentNumber = (studentNumber) => {
+  //   this.setState({ studentId: `Student${studentNumber}` })
+  // }
+
+  selectStudent = (event) => {
+    event.preventDefault()
+    console.log(`Selecting Student ${this.state.studentNumber}`)
+    // this.onSetStudentNumber(this.state.studentNumber)
+    this.setState({ studentId: `Student${this.state.studentNumber}`})
+  }
+
+  studentForm = () => {
+    return(
+      <div>
+        <Col sm={2}>
+          <Form onSubmit={this.selectStudent}>
+            <FormGroup controlId="studentNumber">
+              <FormLabel>Student Number</FormLabel>
+              <FormControl value={this.state.studentNumber}
+                onChange={this.handleChange} type="text" autoComplete="on" autoFocus />
+            </FormGroup>
+            <Button size="sm" type="submit" disabled={!this.studentNumberNotEmpty()}>Set</Button>
+          </Form>
+        </Col>
+      </div>
+    )
+  }
+
   render() {
     if (this.state.isAuthenticating)
       return null
 
-    let thingName = '#'
-    if (this.state.studentId !== "") {
-      thingName = this.state.studentId
-    }
+    // let thingName = '#'
+    // if (this.state.studentId !== "") {
+    //   thingName = this.state.studentId
+    // }
+    let thingName = ''
+    // if (this.studentNumberNotEmpty()) {
+      thingName = this.state.studentId; //`Student${this.state.studentId}`
+    // }
+    console.log(`using Thing: ${thingName}`)
+
+    // const studentNumber = this.state.studentId.replace(/\D/g,'')
 
     return (
       <div className="App">
-        {(this.state.studentId !== "") &&
+        <Col sm={2}>
+          <Form onSubmit={this.selectStudent}>
+            <FormGroup controlId="studentNumber">
+              <FormLabel>Student Number</FormLabel>
+              <FormControl
+                onChange={this.handleChange} type="text" autoComplete="on" autoFocus />
+            </FormGroup>
+            <Button size="sm" type="submit" disabled={!this.studentNumberNotEmpty()}>Set</Button>
+          </Form>
+        </Col>
+        {false && (this.state.studentId !== "") &&
         <Signup
           username={this.state.studentId}
           existingUser={this.state.existingUser}
@@ -124,7 +184,9 @@ class App extends Component {
             bucketName={'sttechnologytour-scofranc'}
             username={this.state.studentId}
         />}
-        <Dashboard2 thingName={thingName} />
+        {thingName}
+        {true &&
+        <Dashboard2 thingName={thingName} />}
       </div>
     )
   }
