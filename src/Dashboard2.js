@@ -86,7 +86,9 @@ class Dashboard2 extends Component {
           if (!this.shadowRegistered) {
             console.log('registering ' + thingName);
 
-            this.shadows.register(thingName, {}, function() {
+            this.shadows.register(thingName, {
+              ignoreDeltas: true
+            }, function() {
               console.log('...registered')
               this.getThingState();
             }.bind(this));
@@ -114,25 +116,18 @@ class Dashboard2 extends Component {
         this.shadows.on('status', function(thingName, stat, clientToken, stateObject) {
           console.log('..onStatus')
           console.log('Operation ' + clientToken + " status: " + stat);
-          if (clientToken === this.clientTokenUpdate) {
-            if (stat === 'accepted') {
-              this.handleNewThingState(stateObject);
-            }
-          } else if (clientToken === this.clientTokenGet) {
-            if (stat === 'accepted') {
-              this.handleNewThingState(stateObject);
-            }
+          if ((  (clientToken === this.clientTokenUpdate) ||
+                (clientToken === this.clientTokenGet)) &&
+              (stat === 'accepted')) {
+               this.handleNewThingState(stateObject);
           }
-          console.log(stateObject);
+          // console.log(stateObject);
         }.bind(this));
 
         this.shadows.on('foreignStateChange', function(thingName, operation, stateObject) {
           console.log('foreignStateChange ' + operation);
-          console.log(stateObject);
-          if (operation === "update") {
-            console.log('!update')
-            this.handleNewThingState(stateObject);
-          }
+          // refetch the whole shadow
+          this.clientTokenGet = this.shadows.get(thingName)
         }.bind(this))
       } )
     })
