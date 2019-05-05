@@ -154,7 +154,8 @@ class Dashboard2 extends Component {
       }
 
       if (stateObject.state.reported.LEDstate !== undefined) {
-        message['LEDstate'] = (stateObject.state.reported.LEDstate) ? "On" : "Off"
+        message['LEDstate'] = (stateObject.state.reported.LEDstate)*1000
+        // message['LEDstate'] = (stateObject.state.reported.LEDstate) ? "On" : "Off"
       }
 
       if (stateObject.state.reported.accel !== undefined) {
@@ -198,6 +199,10 @@ class Dashboard2 extends Component {
       'Magn_Y': "mGa",
       'Magn_Z': "mGa",
       'LEDstate': ''
+    }
+
+    if (label === 'LEDstate') {
+      return((value > 0) ? "On" : "Off")
     }
 
     return(`${value} ${units[label]}`)
@@ -280,8 +285,14 @@ class Dashboard2 extends Component {
                 </thead>
                 <tbody>
                   {this.state.messages.map((t,i) => {
-                    return(<tr key={i}>{tLabels.map((m, j) => {
-                      return(<td key={j}>{t[m]}</td>)})}</tr>)})}
+                    return(
+                      <tr key={i}>{tLabels.map((m, j) => {
+                        if (m === 'LEDstate') {
+                          return(<td key={j}>{(t[m] > 0) ? "On" : "Off"}</td>)
+                        } else {
+                          return(<td key={j}>{t[m]}</td>)
+                        }
+                    })}</tr>)})}
                 </tbody>
               </table>
             </div>
