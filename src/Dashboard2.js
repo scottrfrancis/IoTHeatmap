@@ -97,7 +97,6 @@ class Dashboard2 extends Component {
             this.shadows.register(thingName, {
               ignoreDeltas: true
             }, function() {
-              console.log('...registered')
               this.getThingState();
             }.bind(this));
             this.shadowRegistered = true;
@@ -117,23 +116,18 @@ class Dashboard2 extends Component {
         }.bind(this));
 
         this.shadows.on('message', (topic, message) => {
-          console.log("..onMessage")
           this.handleTopicMessage(JSON.parse(message))
         })
 
         this.shadows.on('status', function(thingName, stat, clientToken, stateObject) {
-          console.log('..onStatus')
-          console.log('Operation ' + clientToken + " status: " + stat);
           if ((  (clientToken === this.clientTokenUpdate) ||
                 (clientToken === this.clientTokenGet)) &&
               (stat === 'accepted')) {
                this.handleNewThingState(stateObject);
           }
-          // console.log(stateObject);
         }.bind(this));
 
         this.shadows.on('foreignStateChange', function(thingName, operation, stateObject) {
-          console.log('foreignStateChange ' + operation);
           // refetch the whole shadow
           this.clientTokenGet = this.shadows.get(thingName)
         }.bind(this))
@@ -142,10 +136,7 @@ class Dashboard2 extends Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
-    console.log(`dashboard will get props: ${nextProps}`)
-
     if (this.props.thingName !== nextProps.thingName) {
-      console.log('need to re-SUBSCRIBE')
       this.setupSubscription(nextProps.thingName)
     }
   }
@@ -155,8 +146,6 @@ class Dashboard2 extends Component {
   }
 
   handleNewThingState(stateObject) {
-    console.log('>handleNewThingState')
-    console.log(stateObject)
     if (stateObject.state.reported === undefined) {
       console.warn("no reported thing state");
     } else {
@@ -165,7 +154,7 @@ class Dashboard2 extends Component {
       }
 
       if (stateObject.state.reported.LEDstate !== undefined) {
-        message['LEDstate'] = stateObject.state.reported.LEDstate
+        message['LEDstate'] = stateObject.state.reported.LEDstate*1000
       }
 
       if (stateObject.state.reported.accel !== undefined) {
@@ -210,6 +199,11 @@ class Dashboard2 extends Component {
       'Magn_Z': "mGa"
     }
 
+    if (label === 'LEDstate') {
+      const display = (value > 0) ? 'ON' : 'OFF'
+      return(display)
+    }
+
     return(`${value} ${units[label]}`)
   }
 
@@ -252,45 +246,53 @@ class Dashboard2 extends Component {
       data.push(row)
     }
 
-    return (
-      <div>
-        <Col sm={8}>
-          <div className="App-canvasContainer">
-          <h4>LED Status</h4>
-            <Switch on={this.isLEDOn()} onClick={this.toggleLED} />
-          </div>
+    if (((this.props.thingName === '') || (this.props.thingName === '#')) &&
+      (yLabels.length <= 0)) {
+        return(
           <div>
-            <Button onClick={this.updateAccelerometer}
-              size="sm" type="button" class="btn btn-success" variant="success"
-            >Update Acclerometer</Button>
           </div>
-          <h3>Dashboard</h3>
-          <div className="HeatMap">
-          <HeatMap
-            xLabels={xLabels} yLabels={yLabels} data={data}
-            yLabelWidth = {150} background = {"#ee9900"} squares={true} height={75}
-            cellRender={this.displayMetric}
-          />
-          </div>
-          <div>
-            <br />
-            <table>
-              <thead>
-                <tr>
-                  {(tLabels.length > 1) && tLabels
-                    .map((m, j) => {return(<th key={j}>{m}</th>)})}
-                </tr>
-              </thead>
-              <tbody>
-                {this.state.messages.map((t,i) => {
-                  return(<tr key={i}>{tLabels.map((m, j) => {
-                    return(<td key={j}>{t[m]}</td>)})}</tr>)})}
-              </tbody>
-            </table>
-          </div>
-        </Col>
-      </div>
-    )
+        )
+    } else {
+      return (
+        <div>
+          <Col sm={8}>
+            <div className="App-canvasContainer">
+            <h4>LED Status</h4>
+              <Switch on={this.isLEDOn()} onClick={this.toggleLED} />
+            </div>
+            <div>
+              <Button onClick={this.updateAccelerometer}
+                size="sm" type="button" class="btn btn-success" variant="success"
+              >Update Acclerometer</Button>
+            </div>
+            <h3>Dashboard</h3>
+            <div className="HeatMap">
+            <HeatMap
+              xLabels={xLabels} yLabels={yLabels} data={data}
+              yLabelWidth = {150} background = {"#ee9900"} squares={true} height={75}
+              cellRender={this.displayMetric}
+            />
+            </div>
+            <div>
+              <br />
+              <table>
+                <thead>
+                  <tr>
+                    {(tLabels.length > 1) && tLabels
+                      .map((m, j) => {return(<th key={j}>{m}</th>)})}
+                  </tr>
+                </thead>
+                <tbody>
+                  {this.state.messages.map((t,i) => {
+                    return(<tr key={i}>{tLabels.map((m, j) => {
+                      return(<td key={j}>{t[m]}</td>)})}</tr>)})}
+                </tbody>
+              </table>
+            </div>
+          </Col>
+        </div>
+      )
+    }
   }
 }
 
