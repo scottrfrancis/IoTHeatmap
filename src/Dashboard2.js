@@ -154,7 +154,7 @@ class Dashboard2 extends Component {
       }
 
       if (stateObject.state.reported.LEDstate !== undefined) {
-        message['LEDstate'] = stateObject.state.reported.LEDstate*1000
+        message['LEDstate'] = (stateObject.state.reported.LEDstate) ? "On" : "Off"
       }
 
       if (stateObject.state.reported.accel !== undefined) {
@@ -196,12 +196,8 @@ class Dashboard2 extends Component {
       'Gyro_Z': "\xB0/S",
       'Magn_X': "mGa",
       'Magn_Y': "mGa",
-      'Magn_Z': "mGa"
-    }
-
-    if (label === 'LEDstate') {
-      const display = (value > 0) ? 'ON' : 'OFF'
-      return(display)
+      'Magn_Z': "mGa",
+      'LEDstate': ''
     }
 
     return(`${value} ${units[label]}`)
