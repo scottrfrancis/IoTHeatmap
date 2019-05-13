@@ -232,7 +232,11 @@ class Dashboard2 extends Component {
   updateAccelerometer = () => {
     console.log('update accel')
     const newState = {state: {desired: {accelUpdate: 1}}}
-    this.clientTokenUpdate = this.shadows.update(this.props.thingName, newState)
+    try {
+      this.clientTokenUpdate = this.shadows.update(this.props.thingName, newState)
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   render() {

@@ -121,7 +121,7 @@ class App extends Component {
     event.preventDefault()
     console.log(`Selecting Student ${this.state.studentNumber}`)
     // this.onSetStudentNumber(this.state.studentNumber)
-    this.setState({ studentId: `Student${this.state.studentNumber}`})
+    this.setState({ studentId: `student${this.state.studentNumber}`})
   }
 
   studentForm = () => {
