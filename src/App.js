@@ -4,10 +4,20 @@ import Amplify, { Auth } from 'aws-amplify'
 import awsconfig from './aws-exports'
 import AWS from 'aws-sdk'
 import { Button, Col, Form, FormGroup, FormControl, FormLabel } from "react-bootstrap";
+import config from 'react-global-configuration'
 import Signup from './Signup'
 import Credentials from './Credentials'
 import Dashboard2 from './Dashboard2'
 // import Student from './Student'
+
+
+config.set({
+  showShadow: false,
+  showSignup: true,
+  allowNewSignup: false,
+
+  bucketName: 'sttechnologytour-scofranc'
+})
 
 
 // retrieve temporary AWS credentials and sign requests
@@ -36,7 +46,7 @@ class App extends Component {
       isAuthenticating: true,
 
       studentNumber: null,
-      studentId: '#', //window.location.pathname.split("/")[1],  // requested id
+      studentId: '#',
       existingUser: null,
       isUserLoggedIn: false
     }
@@ -93,13 +103,16 @@ class App extends Component {
     })
   }
 
-  onUserSignIn =  () => {
+  onUserSignIn =  (username) => {
     Auth.currentUserCredentials().then((creds) => {
       AWS.config.update({
         credentials: creds
       })
 
-      this.setState({ isUserLoggedIn: true })
+      this.setState({
+        studentId: username,
+        isUserLoggedIn: true
+      })
     })
   }
 
@@ -157,8 +170,9 @@ class App extends Component {
 
     // const studentNumber = this.state.studentId.replace(/\D/g,'')
 
-    return (
-      <div className="App">
+    let studentSelect = ''
+    if (config.get('showShadow')) {
+      studentSelect = (
         <Col sm={2}>
           <Form onSubmit={this.selectStudent}>
             <FormGroup controlId="studentNumber">
@@ -169,19 +183,33 @@ class App extends Component {
             <Button size="sm" type="submit" disabled={!this.studentNumberNotEmpty()}>Go</Button>
           </Form>
         </Col>
-        {false && (this.state.studentId !== "") &&
-        <Signup
-          username={this.state.studentId}
-          existingUser={this.state.existingUser}
-          updateUser={this.getExistingUserFromUsername}
-          onUserSignIn={this.onUserSignIn}
-          onUserSignOut={this.onUserSignOut}
-          isUserLoggedIn={this.state.isUserLoggedIn}/>
-        }
+      )
+    }
+    let studentSignup = ''
+    if (config.get('showSignup') && (this.state.studentId !== "")) {
+        studentSignup = (
+          <Signup
+            username={this.state.studentId}
+            existingUser={this.state.existingUser}
+            updateUser={this.getExistingUserFromUsername}
+            onUserSignIn={this.onUserSignIn}
+            onUserSignOut={this.onUserSignOut}
+            isUserLoggedIn={this.state.isUserLoggedIn}
+            showNewUserSignup={config.get('allowNewSignup')}
+          />
+        )
+    }
+
+    return (
+      <div className="App">
+
+
+        {studentSelect}
+        {studentSignup}
         <br/>
         {this.state.isUserLoggedIn &&
         <Credentials
-            bucketName={'sttechnologytour-scofranc'}
+            bucketName={config.get('bucketName')}
             username={this.state.studentId}
         />}
         <Dashboard2 thingName={thingName} />

@@ -10,12 +10,15 @@ class Signup extends Component {
   constructor(props) {
     super(props)
 
+    const username = (this.props.username === '#') ? '' :  this.props.username
+
     this.state = {
       name: "",
       email: "",
       company: "",
       password: "",
       confirmationCode: "",
+      username: username,
 
       errorMessage: ""
     }
@@ -76,7 +79,7 @@ class Signup extends Component {
     event.preventDefault()
     let success = false
 
-    Auth.signIn(this.props.username, this.state.password).then(
+    Auth.signIn(this.state.username, this.state.password).then(
       u => {
         console.log(u)
         success = (u !== undefined)
@@ -87,7 +90,7 @@ class Signup extends Component {
         this.setState({ errorMessage: error.message })
       }
     ).finally( () => {
-      success && (this.props.onUserSignIn) && (this.props.onUserSignIn())
+      success && (this.props.onUserSignIn) && (this.props.onUserSignIn(this.state.username))
       !success && (this.props.onUserSignOut) && (this.props.onUserSignOut())
     })
   }
@@ -95,7 +98,7 @@ class Signup extends Component {
   confirmWithCode = async event => {
     event.preventDefault()
 
-    Auth.confirmSignUp(this.props.username, this.state.confirmationCode).then(
+    Auth.confirmSignUp(this.state.username, this.state.confirmationCode).then(
       conf => {
         console.log(conf)
         this.logIn(event)
@@ -113,7 +116,7 @@ class Signup extends Component {
     event.preventDefault()
 
     const newUser = await Auth.signUp({
-      username: this.props.username,
+      username: this.state.username,
       password: this.state.password,
       attributes: {
         name: this.state.name,
@@ -151,9 +154,21 @@ class Signup extends Component {
   }
 
   logInForm() {
-    if (this.isExistingUserConfirmed && !this.props.isUserLoggedIn) {
+    if (this.isExistingUserConfirmed && !this.state.isUserLoggedIn) {
+      let usernamePlaceholder = this.state.username
+      if (usernamePlaceholder === '') {
+        usernamePlaceholder = 'studentXX'
+      }
       return(
         <Form onSubmit={this.logIn}>
+          <FormGroup controlId="username" size="large">
+            <FormLabel column sm={labelSize}>Username</FormLabel>
+            <FormControl
+              value={this.state.username}
+              placeholder={usernamePlaceholder}
+              onChange={this.handleChange} type="text" autoComplete="on" autoFocus
+            />
+          </FormGroup>
           <FormGroup controlId="password" size="large">
             <FormLabel column sm={labelSize}>Password</FormLabel>
               <FormControl
@@ -229,17 +244,17 @@ class Signup extends Component {
       return(
         <div>
           <Col sm={4}>
-            <h6>{this.props.username} Logged In</h6>
+            <h6>{this.state.username} Logged In</h6>
             {this.logOutForm()}
           </Col>
         </div>
       )
-    } else if (this.isExistingUserConfirmed()) {
+    } else if (this.isExistingUserConfirmed() || (!this.props.showNewSignup)) {
       // show password to login
       return(
         <div>
           <Col sm={3}>
-            <h6>Enter password for {this.props.username}</h6>
+            <h6>Login or Show QR Code</h6>
             {this.errorAlert()}
             {this.logInForm()}
           </Col>
@@ -256,7 +271,7 @@ class Signup extends Component {
           </Col>
         </div>
       )
-    } else {
+    } else if (this.props.showNewSignup) {
       // R: existingUser should be null
       // show signup form
       return(
