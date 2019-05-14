@@ -1,6 +1,7 @@
 import { Auth } from 'aws-amplify'
 import React, { Component } from 'react'
 import { Alert, Button, Col, Form, FormGroup, FormControl, FormLabel } from "react-bootstrap";
+import QrReader from 'react-qr-scanner'
 
 
 const labelSize = 3
@@ -27,6 +28,8 @@ class Signup extends Component {
     this.logIn = this.logIn.bind(this)
     this.confirmWithCode = this.confirmWithCode.bind(this)
     this.signUp = this.signUp.bind(this)
+
+    this.handleScan = this.handleScan.bind(this)
   }
 
   isExistingUserConfirmed() {
@@ -153,32 +156,54 @@ class Signup extends Component {
     }
   }
 
+  handleError = (err) => {
+    console.log(err)
+  }
+
+  handleScan = (data) => {
+    console.log(data)
+  }
+
   logInForm() {
     if (this.isExistingUserConfirmed && !this.state.isUserLoggedIn) {
       let usernamePlaceholder = this.state.username
       if (usernamePlaceholder === '') {
         usernamePlaceholder = 'studentXX'
       }
+
+      const previewStyle = {
+        height: 240,
+        width: 320
+      }
+
       return(
-        <Form onSubmit={this.logIn}>
-          <FormGroup controlId="username" size="large">
-            <FormLabel column sm={labelSize}>Username</FormLabel>
-            <FormControl
-              value={this.state.username}
-              placeholder={usernamePlaceholder}
-              onChange={this.handleChange} type="text" autoComplete="on" autoFocus
-            />
-          </FormGroup>
-          <FormGroup controlId="password" size="large">
-            <FormLabel column sm={labelSize}>Password</FormLabel>
+        <Col sm={2*controlSize}>
+          <QrReader
+            delay={100}
+            style={previewStyle}
+            onError={this.handleError}
+            onScan={this.handleScan}
+          />
+          <Form onSubmit={this.logIn}>
+            <FormGroup controlId="username" size="large">
+              <FormLabel column sm={labelSize}>Username</FormLabel>
               <FormControl
-                value={this.state.password}
-                onChange={this.handleChange} type="password" autoComplete="off" autoFocus />
-          </FormGroup>
-            <Button
-              size="sm" type="submit" disabled={!this.passwordNotEmpty}
-            >Log in</Button>
-        </Form>
+                value={this.state.username}
+                placeholder={usernamePlaceholder}
+                onChange={this.handleChange} type="text" autoComplete="on" autoFocus
+              />
+            </FormGroup>
+            <FormGroup controlId="password" size="large">
+              <FormLabel column sm={labelSize}>Password</FormLabel>
+                <FormControl
+                  value={this.state.password}
+                  onChange={this.handleChange} type="password" autoComplete="off" autoFocus />
+            </FormGroup>
+              <Button
+                size="sm" type="submit" disabled={!this.passwordNotEmpty}
+              >Log in</Button>
+          </Form>
+        </Col>
       )
     }
   }
