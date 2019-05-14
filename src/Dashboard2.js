@@ -4,6 +4,7 @@ import { Button, Col } from "react-bootstrap";
 import AWS from 'aws-sdk'
 import awsconfig from './aws-exports'
 import awsiot from './aws-iot'
+import config from 'react-global-configuration'
 import HeatMap from 'react-heatmap-grid'
 import AWSIoTData from 'aws-iot-device-sdk'
 
@@ -258,18 +259,28 @@ class Dashboard2 extends Component {
           </div>
         )
     } else {
-      return (
-        <div>
+      let shadowControl = ''
+      if (config.get('showShadow')) {
+        shadowControl = (
           <Col sm={8}>
             <div className="App-canvasContainer">
-            <h4>LED Status</h4>
+              <h4>LED Status</h4>
               <Switch on={this.isLEDOn()} onClick={this.toggleLED} />
             </div>
             <div>
               <Button onClick={this.updateAccelerometer}
-                size="sm" type="button" class="btn btn-success" variant="success"
+                  size="sm" type="button" class="btn btn-success" variant="success"
               >Update Acclerometer</Button>
             </div>
+          </Col>
+        )
+      }
+
+
+      return (
+        <div>
+          {shadowControl}
+          <Col sm={8}>
             <h3>Dashboard</h3>
             <div className="HeatMap">
             <HeatMap
