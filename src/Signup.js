@@ -25,6 +25,7 @@ class Signup extends Component {
     }
 
     this.logOut = this.logOut.bind(this)
+    this.loginWithUserAndPassword = this.loginWithUserAndPassword.bind(this)
     this.logIn = this.logIn.bind(this)
     this.confirmWithCode = this.confirmWithCode.bind(this)
     this.signUp = this.signUp.bind(this)
@@ -66,7 +67,6 @@ class Signup extends Component {
     })
   }
 
-
   logOut = async event => {
     event.preventDefault()
 
@@ -78,13 +78,11 @@ class Signup extends Component {
     })
   }
 
-  logIn = async event => {
-    event.preventDefault()
+  loginWithUserAndPassword = (username, password) => {
     let success = false
 
-    Auth.signIn(this.state.username, this.state.password).then(
+    Auth.signIn(username, password).then(
       u => {
-        console.log(u)
         success = (u !== undefined)
       },
       error => {
@@ -93,9 +91,15 @@ class Signup extends Component {
         this.setState({ errorMessage: error.message })
       }
     ).finally( () => {
-      success && (this.props.onUserSignIn) && (this.props.onUserSignIn(this.state.username))
+      success && (this.props.onUserSignIn) && (this.props.onUserSignIn(username))
       !success && (this.props.onUserSignOut) && (this.props.onUserSignOut())
     })
+  }
+
+  logIn = async event => {
+    event.preventDefault()
+
+    this.loginWithUserAndPassword(this.state.username, this.state.password)
   }
 
   confirmWithCode = async event => {
@@ -161,7 +165,22 @@ class Signup extends Component {
   }
 
   handleScan = (data) => {
+    if (data === null)
+      return
+
     console.log(data)
+    const dataObj = JSON.parse(data)
+
+    if ((dataObj.username !== undefined) && (dataObj.username.length > 0)
+      && (dataObj.password !== undefined) && (dataObj.password.length > 0)) {
+
+      this.setState({
+        username: dataObj.username,
+        password: dataObj.password
+      }, () => {
+        this.loginWithUserAndPassword(this.state.username, this.state.password)
+      })
+    }
   }
 
   logInForm() {
