@@ -18,7 +18,7 @@ url = url_base + "?" + urllib.urlencode(params)
 print(url)
 
 qr = pyqrcode.create(url)
-qr.png('url.png', scale=1)
+qr.png('url.png', scale=2)
 
 
 template_file = open('./template.html')
@@ -41,7 +41,7 @@ class MyPDF(FPDF, HTMLMixin):
 pdf = MyPDF()
 pdf.add_page()
 pdf.image('url.png')
-pdf.set_font('Arial', '', 10)
+pdf.set_font('Arial', '', 9)
 pdf.write_html(dst)
 
 outfile = params['username'] + ".pdf"

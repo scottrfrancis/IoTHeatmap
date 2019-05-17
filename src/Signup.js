@@ -170,17 +170,22 @@ class Signup extends Component {
       return
 
     console.log(data)
-    const dataObj = JSON.parse(data)
+    // const dataObj = JSON.parse(data)
+    if (data.indexOf("?") > 0) {
+      const searchParams = new URLSearchParams(data.substr(data.indexOf("?")))
+      const username = searchParams.get('username')
+      const password = searchParams.get('password')
 
-    if ((dataObj.username !== undefined) && (dataObj.username.length > 0)
-      && (dataObj.password !== undefined) && (dataObj.password.length > 0)) {
+      if ((username !== undefined) && (username.length > 0)
+        && (password !== undefined) && (password.length > 0)) {
 
-      this.setState({
-        username: dataObj.username,
-        password: dataObj.password
-      }, () => {
-        this.loginWithUserAndPassword(this.state.username, this.state.password)
-      })
+        this.setState({
+          username: username,
+          password: password
+        }, () => {
+          this.loginWithUserAndPassword(this.state.username, this.state.password)
+        })
+      }
     }
   }
 
