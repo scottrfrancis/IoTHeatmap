@@ -16,6 +16,7 @@
     "react-heatmap": "^1.0.6",
     "react-heatmap-grid": "^0.8.0",
     "react-markdown": "^4.0.6",
+    "react-qr-reader": "^2.2.1",
     "react-qr-scanner": "0.0.8",
     "react-scripts": "2.1.8",
     "react-toggle-switch": "^3.0.4"

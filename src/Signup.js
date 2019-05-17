@@ -1,7 +1,8 @@
 import { Auth } from 'aws-amplify'
 import React, { Component } from 'react'
-import { Alert, Button, Col, Form, FormGroup, FormControl, FormLabel } from "react-bootstrap";
+import { Alert, Button, Col, Form, FormGroup, FormControl, FormLabel, Row } from "react-bootstrap";
 import QrReader from 'react-qr-scanner'
+// import QrReader from 'react-qr-reader'
 
 
 const labelSize = 3
@@ -196,13 +197,15 @@ class Signup extends Component {
       }
 
       return(
-        <Col sm={2*controlSize}>
-          <QrReader
-            delay={100}
-            style={previewStyle}
-            onError={this.handleError}
-            onScan={this.handleScan}
-          />
+        <Col sm={4*controlSize}>
+          <Row>
+            <QrReader
+              delay={100}
+              style={previewStyle}
+              onError={this.handleError}
+              onScan={this.handleScan}
+            />
+          </Row>
           <Form onSubmit={this.logIn}>
             <FormGroup controlId="username" size="large">
               <FormLabel column sm={labelSize}>Username</FormLabel>
