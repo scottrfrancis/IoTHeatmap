@@ -18,7 +18,7 @@ class Signup extends Component {
       name: "",
       email: "",
       company: "",
-      password: "",
+      password: this.props.password,
       confirmationCode: "",
       username: username,
 

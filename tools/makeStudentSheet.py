@@ -14,7 +14,7 @@ params = {
     "password": "12E456t*"
 }
 
-url = url_base + urllib.urlencode(params)
+url = url_base + "?" + urllib.urlencode(params)
 print(url)
 
 qr = pyqrcode.create(url)

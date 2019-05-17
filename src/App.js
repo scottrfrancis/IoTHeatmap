@@ -38,15 +38,21 @@ function updateAWSCredsForAnonymous() {
 }
 
 
+
 class App extends Component {
   constructor(props) {
     super(props)
+
+    const searchParams = new URLSearchParams(window.location.search)
+    const username = searchParams.get('username')
+    const password = searchParams.get('password')
 
     this.state = {
       isAuthenticating: true,
 
       studentNumber: null,
-      studentId: '#',
+      studentId: (username === null) ? '#' : username,
+      password: password,
       existingUser: null,
       isUserLoggedIn: false
     }
@@ -190,6 +196,7 @@ class App extends Component {
         studentSignup = (
           <Signup
             username={this.state.studentId}
+            password={this.state.password}
             existingUser={this.state.existingUser}
             updateUser={this.getExistingUserFromUsername}
             onUserSignIn={this.onUserSignIn}
