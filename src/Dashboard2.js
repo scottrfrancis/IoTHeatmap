@@ -300,7 +300,7 @@ class Dashboard2 extends Component {
         <div>
           {shadowControl}
           <Col sm={8}>
-            <h3>Dashboard</h3>
+            {/*<h3>Dashboard</h3>*/}
             <div className="HeatMap">
             <HeatMap
               xLabels={xLabels} yLabels={yLabels} data={data}

@@ -207,15 +207,18 @@ class App extends Component {
   header = () => {
     return(
       <div>
+        <p>&nbsp;</p>
         <Row>
           <Col>
             <img src='image.png' width={100} height={60} />
           </Col>
           <Col>
+            <h3>AWS IoT Workshop with Amazon:FreeRTOS</h3>
+          </Col>
+          <Col>
             <img src={config.get('logo')} height={60} />
           </Col>
         </Row>
-        <h3>AWS IoT Workshop with Amazon:FreeRTOS</h3>
         <ButtonGroup className="mr-2" aria-label="First group">
           {this.panes.map((p,i) => {
             return(<Button key={i}
@@ -225,6 +228,7 @@ class App extends Component {
             )
           })}
         </ButtonGroup>
+        <p>&nbsp;</p><p>&nbsp;</p>
       </div>
     )
   }
