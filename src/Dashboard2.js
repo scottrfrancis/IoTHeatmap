@@ -16,6 +16,14 @@ const MaxSamples = 50
 const Board_id_label = "Board_id"
 
 
+
+/*
+ * Dashboard2
+ *
+ *  set topic= to subscribe to a topic -- wildcards allowed
+ * - OR -
+ *  set thingName= to subscribe to a single thing's shadow
+ */
 class Dashboard2 extends Component {
   constructor(props) {
     super(props)
@@ -32,6 +40,8 @@ class Dashboard2 extends Component {
     this.isLEDOn = this.isLEDOn.bind(this)
     this.toggleLED = this.toggleLED.bind(this)
     this.updateAccelerometer = this.updateAccelerometer.bind(this)
+
+    this.componentDidMount = this.componentDidMount.bind(this)
   }
 
   getCurrentCredentials = () => {
@@ -62,6 +72,7 @@ class Dashboard2 extends Component {
 
 
   setupSubscription = (thingName) => {
+    console.log(`setting up subscription for ${thingName}`)
     this.getCurrentCredentials().then((creds) => {
       console.log(creds)
       const essentialCreds = creds;
@@ -102,8 +113,14 @@ class Dashboard2 extends Component {
             }.bind(this));
             this.shadowRegistered = true;
 
+            let topic
+            if (this.props.thingName !== undefined) {
+              topic = `${awsiot.topic_base}/${thingName}`
+            } else if (this.props.topic !== undefined) {
+              topic = this.props.topic
+            }
             this.shadows.subscribe(
-              `${awsiot.topic_base}/${thingName}`
+              topic
               , {},
               (err, granted) => {
                 if (err) console.log(err)
@@ -139,6 +156,13 @@ class Dashboard2 extends Component {
   componentWillReceiveProps = (nextProps) => {
     if (this.props.thingName !== nextProps.thingName) {
       this.setupSubscription(nextProps.thingName)
+    }
+  }
+
+  componentDidMount() {
+    if (this.props.topic !== undefined) {
+      const parts = this.props.topic.split("/")
+      this.setupSubscription(parts[parts.length - 1])
     }
   }
 
@@ -252,12 +276,8 @@ class Dashboard2 extends Component {
       data.push(row)
     }
 
-    if (((this.props.thingName === '') || (this.props.thingName === '#')) &&
-      (yLabels.length <= 0)) {
-        return(
-          <div>
-          </div>
-        )
+    if ((this.props.thingName === '') && (yLabels.length <= 0)) {
+        return(<div></div>)
     } else {
       let shadowControl = ''
       if (config.get('showShadow')) {
@@ -275,7 +295,6 @@ class Dashboard2 extends Component {
           </Col>
         )
       }
-
 
       return (
         <div>

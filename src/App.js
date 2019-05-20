@@ -2,8 +2,9 @@ import React, { Component } from 'react'
 import './App.css'
 import Amplify, { Auth } from 'aws-amplify'
 import awsconfig from './aws-exports'
+import awsiot from './aws-iot'
 import AWS from 'aws-sdk'
-import { Button, Col, Form, FormGroup, FormControl, FormLabel } from "react-bootstrap";
+import { Button, ButtonGroup, Col, Form, FormGroup, FormControl, FormLabel, Row } from "react-bootstrap";
 import config from 'react-global-configuration'
 import Signup from './Signup'
 import Credentials from './Credentials'
@@ -16,7 +17,8 @@ config.set({
   showSignup: true,
   allowNewSignup: false,
 
-  bucketName: 'sttechnologytour-scofranc'
+  bucketName: 'sttechnologytour-scofranc',
+  logo: 'st-logo.svg'
 })
 
 
@@ -37,18 +39,29 @@ function updateAWSCredsForAnonymous() {
   })
 }
 
+const LeaderboardPane = 'Leaderboard'
+const CredentialsPane = 'Credentials'
+const DevicePane = 'Device'
+
 
 
 class App extends Component {
   constructor(props) {
     super(props)
 
+    let selectedPane = LeaderboardPane
+
     const searchParams = new URLSearchParams(window.location.search)
     const username = searchParams.get('username')
     const password = searchParams.get('password')
 
+    if ((username !== null) && (password !== null))
+      selectedPane = CredentialsPane
+
     this.state = {
       isAuthenticating: true,
+
+      selectedPane: selectedPane,
 
       studentNumber: null,
       studentId: (username === null) ? '#' : username,
@@ -63,6 +76,16 @@ class App extends Component {
     this.onUserSignOut = this.onUserSignOut.bind(this)
     // this.onSetStudentNumber = this.onSetStudentNumber.bind(this)
     this.selectStudent = this.selectStudent.bind(this)
+
+    this.goLeaderboard = this.goLeaderboard.bind(this)
+    this.goCredentials = this.goCredentials.bind(this)
+    this.goDevice = this.goDevice.bind(this)
+
+    this.panes = [
+      { label:LeaderboardPane, handler: this.goLeaderboard },
+      { label: CredentialsPane, handler: this.goCredentials },
+      { label: DevicePane, handler: this.goDevice }
+    ]
  }
 
   refreshSessionAndCredentials = () => {
@@ -143,6 +166,27 @@ class App extends Component {
     this.setState({ studentId: `student${this.state.studentNumber}`})
   }
 
+  goLeaderboard = (event) => {
+    event.preventDefault()
+    this.setState({
+      selectedPane: LeaderboardPane
+    })
+  }
+
+  goCredentials = (event) => {
+    event.preventDefault()
+    this.setState({
+      selectedPane: CredentialsPane
+    })
+  }
+
+  goDevice = (event) => {
+    event.preventDefault()
+    this.setState({
+      selectedPane: DevicePane
+    })
+  }
+
   studentForm = () => {
     return(
       <div>
@@ -156,6 +200,31 @@ class App extends Component {
             <Button size="sm" type="submit" disabled={!this.studentNumberNotEmpty()}>Set</Button>
           </Form>
         </Col>
+      </div>
+    )
+  }
+
+  header = () => {
+    return(
+      <div>
+        <Row>
+          <Col>
+            <img src='image.png' width={100} height={60} />
+          </Col>
+          <Col>
+            <img src={config.get('logo')} height={60} />
+          </Col>
+        </Row>
+        <h3>AWS IoT Workshop with Amazon:FreeRTOS</h3>
+        <ButtonGroup className="mr-2" aria-label="First group">
+          {this.panes.map((p,i) => {
+            return(<Button key={i}
+              variant={(this.state.selectedPane === p.label) ? "primary" : "secondary"}
+              onClick={p.handler}
+              >{p.label}</Button>
+            )
+          })}
+        </ButtonGroup>
       </div>
     )
   }
@@ -174,12 +243,12 @@ class App extends Component {
     // }
     console.log(`using Thing: ${thingName}`)
 
-    // const studentNumber = this.state.studentId.replace(/\D/g,'')
 
     let studentSelect = ''
     if (config.get('showShadow')) {
       studentSelect = (
         <Col sm={2}>
+        <i class="glyphicon glyphicon-plus"></i>
           <Form onSubmit={this.selectStudent}>
             <FormGroup controlId="studentNumber">
               <FormLabel>Student Number</FormLabel>
@@ -209,17 +278,24 @@ class App extends Component {
 
     return (
       <div className="App">
+        {this.header()}
 
+        {/* Classroom Leaderboard */}
+        {(this.state.selectedPane === LeaderboardPane) &&
+        <Dashboard2 topic={`${awsiot.topic_base}/#`} />}
 
-        {studentSelect}
-        {studentSignup}
-        <br/>
-        {this.state.isUserLoggedIn &&
-        <Credentials
-            bucketName={config.get('bucketName')}
-            username={this.state.studentId}
-        />}
-        <Dashboard2 thingName={thingName} />
+        {/* signin/credentials */}
+        {(this.state.selectedPane === CredentialsPane) &&
+          ((!this.state.isUserLoggedIn && studentSignup) ||
+            (this.state.isUserLoggedIn &&
+              <Credentials
+                bucketName={config.get('bucketName')}
+                username={this.state.studentId}
+              />))
+        }
+
+        {/* student's device / shadow control */}
+        {(this.state.selectedPane === DevicePane) && <Dashboard2 thingName={thingName} />}
       </div>
     )
   }
