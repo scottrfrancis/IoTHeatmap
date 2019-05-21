@@ -13,8 +13,7 @@ class Credentials extends Component {
     super(props)
 
     this.state = {
-      data: "",
-      hideCreds: false
+      data: ""
     }
   }
 
@@ -42,22 +41,6 @@ class Credentials extends Component {
     })
   }
 
-  hideCreds = async event => {
-    event.preventDefault()
-
-    this.setState({
-      hideCreds: true
-    })
-  }
-
-  showCreds = async event => {
-    event.preventDefault()
-
-    this.setState({
-      hideCreds: false
-    })
-  }
-
   render() {
     return(
       <div>
@@ -69,7 +52,6 @@ class Credentials extends Component {
           <ReactMarkdown
             className={'Credentials'}
             source={this.state.data} />
-          <Button size="sm" type="button" onClick={this.hideCreds}>Hide</Button>
         </Col>}
       </div>
     )

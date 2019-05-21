@@ -4,7 +4,7 @@ import Amplify, { Auth } from 'aws-amplify'
 import awsconfig from './aws-exports'
 import awsiot from './aws-iot'
 import AWS from 'aws-sdk'
-import { Button, ButtonGroup, Col, Form, FormGroup, FormControl, FormLabel, Row } from "react-bootstrap";
+import { Alert, Button, ButtonGroup, Col, Form, FormGroup, FormControl, FormLabel, Row } from "react-bootstrap";
 import config from 'react-global-configuration'
 import Signup from './Signup'
 import Credentials from './Credentials'
@@ -210,13 +210,13 @@ class App extends Component {
         <p>&nbsp;</p>
         <Row>
           <Col>
-            <img src='image.png' width={100} height={60} />
+            <img src='image.png' width={100} height={60} alt=""/>
           </Col>
           <Col>
             <h3>AWS IoT Workshop with Amazon:FreeRTOS</h3>
           </Col>
           <Col>
-            <img src={config.get('logo')} height={60} />
+            <img src={config.get('logo')} height={60} alt="" />
           </Col>
         </Row>
         <ButtonGroup className="mr-2" aria-label="First group">
@@ -237,33 +237,6 @@ class App extends Component {
     if (this.state.isAuthenticating)
       return null
 
-    // let thingName = '#'
-    // if (this.state.studentId !== "") {
-    //   thingName = this.state.studentId
-    // }
-    let thingName = ''
-    // if (this.studentNumberNotEmpty()) {
-      thingName = this.state.studentId; //`Student${this.state.studentId}`
-    // }
-    console.log(`using Thing: ${thingName}`)
-
-
-    let studentSelect = ''
-    if (config.get('showShadow')) {
-      studentSelect = (
-        <Col sm={2}>
-        <i class="glyphicon glyphicon-plus"></i>
-          <Form onSubmit={this.selectStudent}>
-            <FormGroup controlId="studentNumber">
-              <FormLabel>Student Number</FormLabel>
-              <FormControl
-                onChange={this.handleChange} type="text" autoComplete="on" autoFocus />
-            </FormGroup>
-            <Button size="sm" type="submit" disabled={!this.studentNumberNotEmpty()}>Go</Button>
-          </Form>
-        </Col>
-      )
-    }
     let studentSignup = ''
     if (config.get('showSignup') && (this.state.studentId !== "")) {
         studentSignup = (
@@ -278,6 +251,19 @@ class App extends Component {
             showNewUserSignup={config.get('allowNewSignup')}
           />
         )
+    }
+
+    let studentDevice = ''
+    if (config.get('showShadow')) {
+      studentDevice = <Dashboard2 thingName={this.state.studentId} />
+    } else {
+      if (this.state.isUserLoggedIn) {
+        studentDevice = <Dashboard2 topic={`${awsiot.topic_base}/${this.state.studentId}`} />
+      } else {
+        studentDevice = (
+          <Alert variant='warning'>Please Login From the Credentials Tab First</Alert>
+        )
+      }
     }
 
     return (
@@ -299,7 +285,7 @@ class App extends Component {
         }
 
         {/* student's device / shadow control */}
-        {(this.state.selectedPane === DevicePane) && <Dashboard2 thingName={thingName} />}
+        {(this.state.selectedPane === DevicePane) && studentDevice}
       </div>
     )
   }

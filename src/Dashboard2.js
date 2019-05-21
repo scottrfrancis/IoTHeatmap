@@ -154,7 +154,8 @@ class Dashboard2 extends Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
-    if (this.props.thingName !== nextProps.thingName) {
+    if ((this.props.thingName !== nextProps.thingName) ||
+        (this.props.topic !== nextProps.topic)) {
       this.setupSubscription(nextProps.thingName)
     }
   }
