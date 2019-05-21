@@ -1,0 +1,49 @@
+<font face="arial" size="9">
+<h4>Student Workshop Credentials</h4>
+<h4>AWS Console Login</h4>
+<a href='$console_link'>$console_link</a>
+<table>
+<tr><th width="400"/><th width="250"/></tr>
+<tr><td><b>Login</b></td><td><font face="courier">$username</font></td></tr>
+<tr><td><b>Password</b></td><td><font face="courier">$password</font></td></tr>
+</table>
+<h4>Workspaces Credentials</h4>
+<table>
+<tr><th width="400"/><th width="250"/></tr>
+<tr><td><b>Registration</b></td><td>$ws_registration</td></tr>
+<tr><td><b>Login</b></td><td><font face="courier">$username</font></td></tr>
+<tr><td><b>Password</b></td><td><font face="courier">$ws_password</font></td></tr>
+</table>
+<h4>AWS CLI Credentials</h4>
+<table>
+<tr><th width="400"/><th width="250"/></tr>
+<tr><td><b>Access key</b></td><td><font face="courier">$access_key</font></td></tr>
+<tr><td><b>Secret key</b></td><td><font face="courier">$secret_key</font></td></tr>
+</table>
+<h4>GitHub Repository</h4>
+<table>
+<tr><th width="400"/><th width="250"/></tr>
+<tr><td><b>GitHub URL</b></td><td>https://github.com/yona75/sttt-workshop</td></tr>
+<tr><td><b>Branches</b></td><td>master, sensors-demo</td></tr>
+</table>
+<h4>Content for sttt-wooorkshop/tools/ws_config_quick_start/configure.json file:</h4>
+<font face="courier" size="9">
+<p>{</p>
+<p>    "afr_source_dir":"../..",</p>
+<p>    "thing_name":"$username",</p>
+<p>    "wifi_ssid":"staws2019",</p>
+<p>    "wifi_password":"staws2019",</p>
+<p>    "wifi_security":"eWiFiSecurityWPA2"</p>
+<p>}</p>
+<p>...</p>
+<p>Line 90 in sttt-workshop/blob/master/demos/common/mqtt/aws_hello_world.c:</p>
+<p>#define echoTOPIC_NAME ( ( const uint8_t * ) "freertos/demos/echo/$username" )</p>
+<p>&nbsp;</b>
+</font>
+<h4>AWS Credits</h4>
+<table>
+<tr><th width="400"/><th width="250"/></tr>
+<tr><td><b>AWS 10USD credit voucher</b></td><td>$voucher</td></tr>
+<tr><td><b>Expiration date</b></td><td>01/31/20</td></tr>
+</table>
+</font>

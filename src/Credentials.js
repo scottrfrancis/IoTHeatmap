@@ -1,6 +1,6 @@
 import Amplify from 'aws-amplify'
 import React, { Component } from 'react'
-import { Col } from "react-bootstrap";
+import { Button, Col } from "react-bootstrap";
 import ReactMarkdown from 'react-markdown'
 import AWS from 'aws-sdk'
 import awsconfig from './aws-exports'
@@ -12,7 +12,9 @@ class Credentials extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { data: "" }
+    this.state = {
+      data: ""
+    }
   }
 
   componentDidMount() {
@@ -42,12 +44,15 @@ class Credentials extends Component {
   render() {
     return(
       <div>
+        {(this.state.hideCreds &&
+        <Button size="sm" type="button" onClick={this.showCreds}>Show Credentials</Button>)
+        ||
         <Col sm={8}>
           <h3>Credentials and Login Data</h3>
           <ReactMarkdown
             className={'Credentials'}
             source={this.state.data} />
-        </Col>
+        </Col>}
       </div>
     )
   }

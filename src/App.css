@@ -67,3 +67,5 @@ th {
 td {
   font-family: monospace;
 }
+
+@import "../node_modules/react-toggle-switch/dist/css/switch.min.css"

@@ -2,10 +2,24 @@ import React, { Component } from 'react'
 import './App.css'
 import Amplify, { Auth } from 'aws-amplify'
 import awsconfig from './aws-exports'
+import awsiot from './aws-iot'
 import AWS from 'aws-sdk'
+import { Alert, Button, ButtonGroup, Col, Form, FormGroup, FormControl, FormLabel, Row } from "react-bootstrap";
+import config from 'react-global-configuration'
 import Signup from './Signup'
 import Credentials from './Credentials'
 import Dashboard2 from './Dashboard2'
+// import Student from './Student'
+
+
+config.set({
+  showShadow: false,
+  showSignup: true,
+  allowNewSignup: false,
+
+  bucketName: 'sttechnologytour-scofranc',
+  logo: 'st-logo.svg'
+})
 
 
 // retrieve temporary AWS credentials and sign requests
@@ -25,20 +39,33 @@ function updateAWSCredsForAnonymous() {
   })
 }
 
+const LeaderboardPane = 'Leaderboard'
+const CredentialsPane = 'Credentials'
+const DevicePane = 'Device'
+
+
 
 class App extends Component {
   constructor(props) {
     super(props)
 
-    let studentId = window.location.pathname.split("/")[1]  // requested id
-    if (studentId === 'index.html') {
-      studentId = ""
-    }
+    let selectedPane = LeaderboardPane
+
+    const searchParams = new URLSearchParams(window.location.search)
+    const username = searchParams.get('username')
+    const password = searchParams.get('password')
+
+    if ((username !== null) && (password !== null))
+      selectedPane = CredentialsPane
 
     this.state = {
       isAuthenticating: true,
 
-      studentId: studentId,
+      selectedPane: selectedPane,
+
+      studentNumber: null,
+      studentId: (username === null) ? '#' : username,
+      password: password,
       existingUser: null,
       isUserLoggedIn: false
     }
@@ -47,6 +74,18 @@ class App extends Component {
     this.getExistingUserFromUsername = this.getExistingUserFromUsername.bind(this)
     this.onUserSignIn = this.onUserSignIn.bind(this)
     this.onUserSignOut = this.onUserSignOut.bind(this)
+    // this.onSetStudentNumber = this.onSetStudentNumber.bind(this)
+    this.selectStudent = this.selectStudent.bind(this)
+
+    this.goLeaderboard = this.goLeaderboard.bind(this)
+    this.goCredentials = this.goCredentials.bind(this)
+    this.goDevice = this.goDevice.bind(this)
+
+    this.panes = [
+      { label:LeaderboardPane, handler: this.goLeaderboard },
+      { label: CredentialsPane, handler: this.goCredentials },
+      { label: DevicePane, handler: this.goDevice }
+    ]
  }
 
   refreshSessionAndCredentials = () => {
@@ -87,13 +126,22 @@ class App extends Component {
     })
   }
 
-  onUserSignIn =  () => {
+  handleChange = event => {
+    this.setState({
+      [event.target.id]: event.target.value
+    })
+  }
+
+  onUserSignIn =  (username) => {
     Auth.currentUserCredentials().then((creds) => {
       AWS.config.update({
         credentials: creds
       })
 
-      this.setState({ isUserLoggedIn: true })
+      this.setState({
+        studentId: username,
+        isUserLoggedIn: true
+      })
     })
   }
 
@@ -103,33 +151,141 @@ class App extends Component {
     this.getExistingUserFromUsername()
   }
 
+  studentNumberNotEmpty = () => {
+    return (this.state.studentNumber !== null) && (this.state.studentNumber.length !== 0)
+  }
+
+  // onSetStudentNumber = (studentNumber) => {
+  //   this.setState({ studentId: `Student${studentNumber}` })
+  // }
+
+  selectStudent = (event) => {
+    event.preventDefault()
+    console.log(`Selecting Student ${this.state.studentNumber}`)
+    // this.onSetStudentNumber(this.state.studentNumber)
+    this.setState({ studentId: `student${this.state.studentNumber}`})
+  }
+
+  goLeaderboard = (event) => {
+    event.preventDefault()
+    this.setState({
+      selectedPane: LeaderboardPane
+    })
+  }
+
+  goCredentials = (event) => {
+    event.preventDefault()
+    this.setState({
+      selectedPane: CredentialsPane
+    })
+  }
+
+  goDevice = (event) => {
+    event.preventDefault()
+    this.setState({
+      selectedPane: DevicePane
+    })
+  }
+
+  studentForm = () => {
+    return(
+      <div>
+        <Col sm={2}>
+          <Form onSubmit={this.selectStudent}>
+            <FormGroup controlId="studentNumber">
+              <FormLabel>Student Number</FormLabel>
+              <FormControl value={this.state.studentNumber}
+                onChange={this.handleChange} type="text" autoComplete="on" autoFocus />
+            </FormGroup>
+            <Button size="sm" type="submit" disabled={!this.studentNumberNotEmpty()}>Set</Button>
+          </Form>
+        </Col>
+      </div>
+    )
+  }
+
+  header = () => {
+    return(
+      <div>
+        <p>&nbsp;</p>
+        <Row>
+          <Col>
+            <img src='image.png' width={100} height={60} alt=""/>
+          </Col>
+          <Col>
+            <h3>AWS IoT Workshop with Amazon:FreeRTOS</h3>
+          </Col>
+          <Col>
+            <img src={config.get('logo')} height={60} alt="" />
+          </Col>
+        </Row>
+        <ButtonGroup className="mr-2" aria-label="First group">
+          {this.panes.map((p,i) => {
+            return(<Button key={i}
+              variant={(this.state.selectedPane === p.label) ? "primary" : "secondary"}
+              onClick={p.handler}
+              >{p.label}</Button>
+            )
+          })}
+        </ButtonGroup>
+        <p>&nbsp;</p><p>&nbsp;</p>
+      </div>
+    )
+  }
+
   render() {
     if (this.state.isAuthenticating)
       return null
 
-    let thingName = '#'
-    if (this.state.studentId !== "") {
-      thingName = this.state.studentId
+    let studentSignup = ''
+    if (config.get('showSignup') && (this.state.studentId !== "")) {
+        studentSignup = (
+          <Signup
+            username={this.state.studentId}
+            password={this.state.password}
+            existingUser={this.state.existingUser}
+            updateUser={this.getExistingUserFromUsername}
+            onUserSignIn={this.onUserSignIn}
+            onUserSignOut={this.onUserSignOut}
+            isUserLoggedIn={this.state.isUserLoggedIn}
+            showNewUserSignup={config.get('allowNewSignup')}
+          />
+        )
+    }
+
+    let studentDevice = ''
+    if (config.get('showShadow')) {
+      studentDevice = <Dashboard2 thingName={this.state.studentId} />
+    } else {
+      if (this.state.isUserLoggedIn) {
+        studentDevice = <Dashboard2 topic={`${awsiot.topic_base}/${this.state.studentId}`} />
+      } else {
+        studentDevice = (
+          <Alert variant='warning'>Please Login From the Credentials Tab First</Alert>
+        )
+      }
     }
 
     return (
       <div className="App">
-        {(this.state.studentId !== "") &&
-        <Signup
-          username={this.state.studentId}
-          existingUser={this.state.existingUser}
-          updateUser={this.getExistingUserFromUsername}
-          onUserSignIn={this.onUserSignIn}
-          onUserSignOut={this.onUserSignOut}
-          isUserLoggedIn={this.state.isUserLoggedIn}/>
+        {this.header()}
+
+        {/* Classroom Leaderboard */}
+        {(this.state.selectedPane === LeaderboardPane) &&
+        <Dashboard2 topic={`${awsiot.topic_base}/#`} />}
+
+        {/* signin/credentials */}
+        {(this.state.selectedPane === CredentialsPane) &&
+          ((!this.state.isUserLoggedIn && studentSignup) ||
+            (this.state.isUserLoggedIn &&
+              <Credentials
+                bucketName={config.get('bucketName')}
+                username={this.state.studentId}
+              />))
         }
-        <br/>
-        {this.state.isUserLoggedIn &&
-        <Credentials
-            bucketName={'sttechnologytour-scofranc'}
-            username={this.state.studentId}
-        />}
-        <Dashboard2 thingName={thingName} />
+
+        {/* student's device / shadow control */}
+        {(this.state.selectedPane === DevicePane) && studentDevice}
       </div>
     )
   }

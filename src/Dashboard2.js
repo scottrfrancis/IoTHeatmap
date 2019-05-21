@@ -1,26 +1,47 @@
 import { Auth } from 'aws-amplify'
 import React, { Component } from 'react'
-import { Col } from "react-bootstrap";
+import { Button, Col } from "react-bootstrap";
 import AWS from 'aws-sdk'
 import awsconfig from './aws-exports'
 import awsiot from './aws-iot'
+import config from 'react-global-configuration'
 import HeatMap from 'react-heatmap-grid'
 import AWSIoTData from 'aws-iot-device-sdk'
+
+import Switch from 'react-toggle-switch'
+
 
 
 const MaxSamples = 50
 const Board_id_label = "Board_id"
 
 
+
+/*
+ * Dashboard2
+ *
+ *  set topic= to subscribe to a topic -- wildcards allowed
+ * - OR -
+ *  set thingName= to subscribe to a single thing's shadow
+ */
 class Dashboard2 extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
+      LEDstate: 0,
       messages: [],       // reverse-time ordered FIFO of last MaxSamples
       metrics: ["Time"]   // metrics accummulates all keys ever seen in the messages -- but Time is first measurement
     }
     this.client = null
+
+    this.setupSubscription = this.setupSubscription.bind(this)
+
+    this.isLEDOn = this.isLEDOn.bind(this)
+    this.toggleLED = this.toggleLED.bind(this)
+    this.updateAccelerometer = this.updateAccelerometer.bind(this)
+
+    this.componentDidMount = this.componentDidMount.bind(this)
   }
 
   getCurrentCredentials = () => {
@@ -49,7 +70,9 @@ class Dashboard2 extends Component {
     })
   }
 
-  componentDidMount() {
+
+  setupSubscription = (thingName) => {
+    console.log(`setting up subscription for ${thingName}`)
     this.getCurrentCredentials().then((creds) => {
       console.log(creds)
       const essentialCreds = creds;
@@ -66,7 +89,8 @@ class Dashboard2 extends Component {
             clientId: awsconfig.aws_user_pools_web_client_id + (Math.floor((Math.random() * 100000) + 1)),
             protocol: 'wss',
             maximumReconnectTimeMs: 8000,
-            // debug: true,
+            debug: true,
+
             accessKeyId: essentialCreds.accessKeyId,
             secretKey: essentialCreds.secretAccessKey,
             sessionToken: essentialCreds.sessionToken
@@ -78,14 +102,26 @@ class Dashboard2 extends Component {
         this.shadows.on('connect', function() {
           // After connecting to the AWS IoT platform, register interest in the
           // Thing Shadow
+          console.log('..onConnect')
           if (!this.shadowRegistered) {
-            console.log('registering ' + this.props.thingName);
-            this.shadows.register(this.thingName, {}, function() {
+            console.log('registering ' + thingName);
+
+            this.shadows.register(thingName, {
+              ignoreDeltas: true
+            }, function() {
               this.getThingState();
             }.bind(this));
             this.shadowRegistered = true;
 
-            this.shadows.subscribe(`${awsiot.topic_base}/${this.props.thingName}`, {},
+            let topic
+            if (this.props.thingName !== undefined) {
+              topic = `${awsiot.topic_base}/${thingName}`
+            } else if (this.props.topic !== undefined) {
+              topic = this.props.topic
+            }
+            this.shadows.subscribe(
+              topic
+              , {},
               (err, granted) => {
                 if (err) console.log(err)
                 else {
@@ -102,45 +138,65 @@ class Dashboard2 extends Component {
         })
 
         this.shadows.on('status', function(thingName, stat, clientToken, stateObject) {
-          console.log('Operation ' + clientToken + " status: " + stat);
-          if (clientToken === this.clientTokenUpdate) {
-            if (stat === 'accepted') {
-              this.handleNewThingState(stateObject);
-            }
-          } else if (clientToken === this.clientTokenGet) {
-            if (stat === 'accepted') {
-              this.handleNewThingState(stateObject);
-            }
+          if ((  (clientToken === this.clientTokenUpdate) ||
+                (clientToken === this.clientTokenGet)) &&
+              (stat === 'accepted')) {
+               this.handleNewThingState(stateObject);
           }
-          console.log(stateObject);
         }.bind(this));
 
         this.shadows.on('foreignStateChange', function(thingName, operation, stateObject) {
-          console.log('foreignStateChange ' + operation);
-          console.log(stateObject);
-          if (operation === "update") {
-            this.handleNewThingState(stateObject);
-          }
+          // refetch the whole shadow
+          this.clientTokenGet = this.shadows.get(thingName)
         }.bind(this))
-      })
+      } )
     })
   }
 
+  componentWillReceiveProps = (nextProps) => {
+    if ((this.props.thingName !== nextProps.thingName) ||
+        (this.props.topic !== nextProps.topic)) {
+      this.setupSubscription(nextProps.thingName)
+    }
+  }
+
+  componentDidMount() {
+    if (this.props.topic !== undefined) {
+      const parts = this.props.topic.split("/")
+      this.setupSubscription(parts[parts.length - 1])
+    }
+  }
+
   getThingState() {
-    this.clientTokenGet = this.shadows.get(this.thingName);
+    this.clientTokenGet = this.shadows.get(this.props.thingName);
   }
 
   handleNewThingState(stateObject) {
     if (stateObject.state.reported === undefined) {
-      stateObject.state.reported = stateObject.state.desired;
-      console.warn("no reported thing state, using desired");
-    }
+      console.warn("no reported thing state");
+    } else {
+      let message = {
+        "Board_id" : this.props.thingName,
+      }
 
-    var stateChanges = {thingState: stateObject, switched: false};
-    if (this.state.thingState.state === undefined || stateObject.state.reported.Power !== this.state.thingState.state.reported.Power) {
-      this.setState({
-        switched: false});
-      this.setState(stateChanges);
+      if (stateObject.state.reported.LEDstate !== undefined) {
+        message['LEDstate'] = (stateObject.state.reported.LEDstate)*1000
+        // message['LEDstate'] = (stateObject.state.reported.LEDstate) ? "On" : "Off"
+      }
+
+      if (stateObject.state.reported.accel !== undefined) {
+        message['Accel_X'] = stateObject.state.reported.accel.x
+        message['Accel_Y'] = stateObject.state.reported.accel.y
+        message['Accel_Z'] = stateObject.state.reported.accel.z
+      }
+
+      this.handleTopicMessage(message)
+
+      if (stateObject.state.reported.LEDstate !== undefined) {
+        this.setState({
+          LEDstate: stateObject.state.reported.LEDstate
+        })
+      }
     }
   }
 
@@ -167,7 +223,12 @@ class Dashboard2 extends Component {
       'Gyro_Z': "\xB0/S",
       'Magn_X': "mGa",
       'Magn_Y': "mGa",
-      'Magn_Z': "mGa"
+      'Magn_Z': "mGa",
+      'LEDstate': ''
+    }
+
+    if (label === 'LEDstate') {
+      return((value > 0) ? "On" : "Off")
     }
 
     return(`${value} ${units[label]}`)
@@ -184,6 +245,26 @@ class Dashboard2 extends Component {
     return metrics
   }
 
+  isLEDOn = () => {
+    return this.state.LEDstate
+  }
+
+  toggleLED = () => {
+    console.log('LED')
+    const newState = {state: {desired: {LEDstate: (this.state.LEDstate) ? 0 : 1}}}
+    this.clientTokenUpdate = this.shadows.update(this.props.thingName, newState)
+  }
+
+  updateAccelerometer = () => {
+    console.log('update accel')
+    const newState = {state: {desired: {accelUpdate: 1}}}
+    try {
+      this.clientTokenUpdate = this.shadows.update(this.props.thingName, newState)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
   render() {
     const TableLabelsToHide = ["Time", "Board_id"]
     const ExtraLabelsToHide = ["Gyro_X", "Gyro_Y", "Gyro_Z"]
@@ -196,36 +277,64 @@ class Dashboard2 extends Component {
       data.push(row)
     }
 
-    return (
-      <div>
-        <Col sm={8}>
-          <h3>Dashboard</h3>
-          <div className="HeatMap">
-          <HeatMap
-            xLabels={xLabels} yLabels={yLabels} data={data}
-            yLabelWidth = {150} background = {"#ee9900"} squares={true} height={75}
-            cellRender={this.displayMetric}
-          />
-          </div>
-          <div>
-            <br />
-            <table>
-              <thead>
-                <tr>
-                  {(tLabels.length > 1) && tLabels
-                    .map((m, j) => {return(<th key={j}>{m}</th>)})}
-                </tr>
-              </thead>
-              <tbody>
-                {this.state.messages.map((t,i) => {
-                  return(<tr key={i}>{tLabels.map((m, j) => {
-                    return(<td key={j}>{t[m]}</td>)})}</tr>)})}
-              </tbody>
-            </table>
-          </div>
-        </Col>
-      </div>
-    )
+    if ((this.props.thingName === '') && (yLabels.length <= 0)) {
+        return(<div></div>)
+    } else {
+      let shadowControl = ''
+      if (config.get('showShadow')) {
+        shadowControl = (
+          <Col sm={8}>
+            <div className="App-canvasContainer">
+              <h4>LED Status</h4>
+              <Switch on={this.isLEDOn()} onClick={this.toggleLED} />
+            </div>
+            <div>
+              <Button onClick={this.updateAccelerometer}
+                  size="sm" type="button" class="btn btn-success" variant="success"
+              >Update Acclerometer</Button>
+            </div>
+          </Col>
+        )
+      }
+
+      return (
+        <div>
+          {shadowControl}
+          <Col sm={8}>
+            {/*<h3>Dashboard</h3>*/}
+            <div className="HeatMap">
+            <HeatMap
+              xLabels={xLabels} yLabels={yLabels} data={data}
+              yLabelWidth = {150} background = {"#ee9900"} squares={true} height={75}
+              cellRender={this.displayMetric}
+            />
+            </div>
+            <div>
+              <br />
+              <table>
+                <thead>
+                  <tr>
+                    {(tLabels.length > 1) && tLabels
+                      .map((m, j) => {return(<th key={j}>{m}</th>)})}
+                  </tr>
+                </thead>
+                <tbody>
+                  {this.state.messages.map((t,i) => {
+                    return(
+                      <tr key={i}>{tLabels.map((m, j) => {
+                        if (m === 'LEDstate') {
+                          return(<td key={j}>{(t[m] > 0) ? "On" : "Off"}</td>)
+                        } else {
+                          return(<td key={j}>{t[m]}</td>)
+                        }
+                    })}</tr>)})}
+                </tbody>
+              </table>
+            </div>
+          </Col>
+        </div>
+      )
+    }
   }
 }
 
