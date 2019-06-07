@@ -277,7 +277,7 @@ class Dashboard2 extends Component {
       data.push(row)
     }
 
-    if ((this.props.thingName === '') && (yLabels.length <= 0)) {
+    if (((this.props.thingName === undefined) || (this.props.thingName === '')) && (yLabels.length <= 0)) {
         return(<div></div>)
     } else {
       let shadowControl = ''

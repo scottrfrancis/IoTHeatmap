@@ -12,13 +12,16 @@ import Dashboard2 from './Dashboard2'
 // import Student from './Student'
 
 
+// NXP Workshop
 config.set({
-  showShadow: false,
-  showSignup: true,
+  showShadow: true,
+  showSignup: false,
   allowNewSignup: false,
 
-  bucketName: 'sttechnologytour-scofranc',
-  logo: 'st-logo.svg'
+  // bucketName: 'sttechnologytour-scofranc',
+  bucketName: 'nxp-workshop',
+  // logo: 'st-logo.svg'
+  logo: 'NXP_logo_RGB_web.jpg'
 })
 
 
@@ -82,10 +85,14 @@ class App extends Component {
     this.goDevice = this.goDevice.bind(this)
 
     this.panes = [
-      { label:LeaderboardPane, handler: this.goLeaderboard },
-      { label: CredentialsPane, handler: this.goCredentials },
-      { label: DevicePane, handler: this.goDevice }
+      { label: LeaderboardPane, handler: this.goLeaderboard }
     ]
+    config.get('showSignup') && this.panes.push(
+      { label: CredentialsPane, handler: this.goCredentials }
+    )
+    config.get('showShadow') && this.panes.push(
+      { label: DevicePane, handler: this.goDevice }
+    )
  }
 
   refreshSessionAndCredentials = () => {
@@ -272,7 +279,7 @@ class App extends Component {
 
         {/* Classroom Leaderboard */}
         {(this.state.selectedPane === LeaderboardPane) &&
-        <Dashboard2 topic={`${awsiot.topic_base}/#`} />}
+          <Dashboard2 topic={`${awsiot.topic_base}/#`} />}
 
         {/* signin/credentials */}
         {(this.state.selectedPane === CredentialsPane) &&
@@ -285,7 +292,10 @@ class App extends Component {
         }
 
         {/* student's device / shadow control */}
-        {(this.state.selectedPane === DevicePane) && studentDevice}
+        {(this.state.selectedPane === DevicePane) && (!config.get('showSignup'))
+          && this.studentForm()}
+        {(this.state.selectedPane === DevicePane)
+          && studentDevice}
       </div>
     )
   }
