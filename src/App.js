@@ -14,6 +14,7 @@ import Dashboard2 from './Dashboard2'
 
 // NXP Workshop
 config.set({
+  showLeaderboard: false,
   showShadow: true,
   showSignup: false,
   allowNewSignup: false,
@@ -52,14 +53,24 @@ class App extends Component {
   constructor(props) {
     super(props)
 
-    let selectedPane = LeaderboardPane
-
     const searchParams = new URLSearchParams(window.location.search)
     const username = searchParams.get('username')
     const password = searchParams.get('password')
 
-    if ((username !== null) && (password !== null))
-      selectedPane = CredentialsPane
+    this.panes = []
+    config.get('showLeaderboard') && this.panes.push(
+      { label: LeaderboardPane, handler: this.goLeaderboard }
+    )
+    config.get('showSignup') && this.panes.push(
+      { label: CredentialsPane, handler: this.goCredentials }
+    )
+    config.get('showShadow') && this.panes.push(
+      { label: DevicePane, handler: this.goDevice }
+    )
+    let selectedPane = this.panes[0].label
+
+    // if ((username !== null) && (password !== null))
+    //   selectedPane = CredentialsPane
 
     this.state = {
       isAuthenticating: true,
@@ -83,16 +94,6 @@ class App extends Component {
     this.goLeaderboard = this.goLeaderboard.bind(this)
     this.goCredentials = this.goCredentials.bind(this)
     this.goDevice = this.goDevice.bind(this)
-
-    this.panes = [
-      { label: LeaderboardPane, handler: this.goLeaderboard }
-    ]
-    config.get('showSignup') && this.panes.push(
-      { label: CredentialsPane, handler: this.goCredentials }
-    )
-    config.get('showShadow') && this.panes.push(
-      { label: DevicePane, handler: this.goDevice }
-    )
  }
 
   refreshSessionAndCredentials = () => {
@@ -226,6 +227,7 @@ class App extends Component {
             <img src={config.get('logo')} height={60} alt="" />
           </Col>
         </Row>
+        {(this.panes.length > 1) &&
         <ButtonGroup className="mr-2" aria-label="First group">
           {this.panes.map((p,i) => {
             return(<Button key={i}
@@ -234,7 +236,7 @@ class App extends Component {
               >{p.label}</Button>
             )
           })}
-        </ButtonGroup>
+        </ButtonGroup>}
         <p>&nbsp;</p><p>&nbsp;</p>
       </div>
     )
