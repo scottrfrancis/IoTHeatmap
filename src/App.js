@@ -6,19 +6,22 @@ import awsiot from './aws-iot'
 import AWS from 'aws-sdk'
 import { Alert, Button, ButtonGroup, Col, Form, FormGroup, FormControl, FormLabel, Row } from "react-bootstrap";
 import config from 'react-global-configuration'
-import Signup from './Signup'
+import Signup2 from './Signup2'
 import Credentials from './Credentials'
 import Dashboard2 from './Dashboard2'
 // import Student from './Student'
+
+const apiEndpoint = 'https://pqu8ca43d3.execute-api.us-west-2.amazonaws.com/test'
 
 
 // NXP Workshop
 config.set({
   showLeaderboard: false,
   showShadow: true,
-  showSignup: false,
+  showSignup: true,
   allowNewSignup: false,
 
+  partner: 'NXP',
   // bucketName: 'sttechnologytour-scofranc',
   bucketName: 'nxp-workshop',
   // logo: 'st-logo.svg'
@@ -54,7 +57,7 @@ class App extends Component {
     super(props)
 
     const searchParams = new URLSearchParams(window.location.search)
-    const username = searchParams.get('username')
+    let username = searchParams.get('username')
     const password = searchParams.get('password')
 
     this.panes = []
@@ -72,6 +75,7 @@ class App extends Component {
     // if ((username !== null) && (password !== null))
     //   selectedPane = CredentialsPane
 
+
     this.state = {
       isAuthenticating: true,
 
@@ -79,6 +83,7 @@ class App extends Component {
 
       studentNumber: null,
       studentId: (username === null) ? '#' : username,
+      thingName: null,
       password: password,
       existingUser: null,
       isUserLoggedIn: false
@@ -134,6 +139,24 @@ class App extends Component {
     })
   }
 
+  setStudentIdFromUsername = (studentName) => {
+    // add to session
+    sessionStorage.setItem('studentId', studentName)
+
+    this.setState({
+      studentId: studentName,
+      isUserLoggedIn: true
+    })
+
+    let url = apiEndpoint + "/users/" + studentName
+    fetch(url)
+    .then((res) => {return res.json()})
+    .then((data) => {
+      console.log(data)
+      this.setState({thingName: data.body.studentName})
+    })
+  }
+
   handleChange = event => {
     this.setState({
       [event.target.id]: event.target.value
@@ -162,10 +185,6 @@ class App extends Component {
   studentNumberNotEmpty = () => {
     return (this.state.studentNumber !== null) && (this.state.studentNumber.length !== 0)
   }
-
-  // onSetStudentNumber = (studentNumber) => {
-  //   this.setState({ studentId: `Student${studentNumber}` })
-  // }
 
   selectStudent = (event) => {
     event.preventDefault()
@@ -243,28 +262,42 @@ class App extends Component {
   }
 
   render() {
-    if (this.state.isAuthenticating)
-      return null
+    // if (this.state.isAuthenticating)
+    //   return null
 
-    let studentSignup = ''
-    if (config.get('showSignup') && (this.state.studentId !== "")) {
-        studentSignup = (
-          <Signup
-            username={this.state.studentId}
-            password={this.state.password}
-            existingUser={this.state.existingUser}
-            updateUser={this.getExistingUserFromUsername}
-            onUserSignIn={this.onUserSignIn}
-            onUserSignOut={this.onUserSignOut}
-            isUserLoggedIn={this.state.isUserLoggedIn}
-            showNewUserSignup={config.get('allowNewSignup')}
-          />
-        )
-    }
+    // let studentSignup = ''
+    // if (config.get('showSignup') && (this.state.studentId !== "")) {
+    //     /*
+    //     * older setup for cognito logins
+    //     */
+    //     // studentSignup = (
+    //     //   <Signup2
+    //     //     partner={config.get('partner')}
+    //     //     username={this.state.studentId}
+    //     //     existingUser={this.state.existingUser}
+    //     //     updateUser={this.getExistingUserFromUsername}
+    //     //     onUserSignIn={this.onUserSignIn}
+    //     //     onUserSignOut={this.onUserSignOut}
+    //     //     isUserLoggedIn={this.state.isUserLoggedIn}
+    //     //     showNewUserSignup={config.get('allowNewSignup')}
+    //     //   />
+
+    //     /*
+    //     * simplified setup for event-based-passwords
+    //     */
+    //     studentSignup = (
+    //       <Signup2
+    //         partner={config.get('partner')}
+    //         username={this.state.studentId}
+    //         updateUser={this.setStudentIdFromUsername}
+    //         isUserLoggedIn={this.state.isUserLoggedIn}
+    //       />
+    //     )
+    // }
 
     let studentDevice = ''
     if (config.get('showShadow')) {
-      studentDevice = <Dashboard2 thingName={this.state.studentId} />
+      studentDevice = <Dashboard2 thingName={this.state.thingName} />
     } else {
       if (this.state.isUserLoggedIn) {
         studentDevice = <Dashboard2 topic={`${awsiot.topic_base}/${this.state.studentId}`} />
@@ -285,12 +318,21 @@ class App extends Component {
 
         {/* signin/credentials */}
         {(this.state.selectedPane === CredentialsPane) &&
-          ((!this.state.isUserLoggedIn && studentSignup) ||
-            (this.state.isUserLoggedIn &&
-              <Credentials
-                bucketName={config.get('bucketName')}
-                username={this.state.studentId}
-              />))
+          <Signup2
+            partner={config.get('partner')}
+            username={this.state.studentId}
+            updateUser={this.setStudentIdFromUsername}
+            isUserLoggedIn={this.state.isUserLoggedIn}
+          />
+
+          // studentSignup
+        //   ((!this.state.isUserLoggedIn && studentSignup) ||
+        //     (this.state.isUserLoggedIn &&
+        //       <Credentials
+        //         bucketName={config.get('bucketName')}
+        //         username={this.state.studentId}
+        //       />))
+        //
         }
 
         {/* student's device / shadow control */}

@@ -20,9 +20,14 @@
 .Credentials {
   text-align: left;
   font-family: monospace;
+  font-size:12px;
   margin-left: 20px;
   background-color: #eeeeee;
   color: #005588;
+}
+.Credentials.p {
+  margin: 6px;
+  padding: 6px;
 }
 
 .HeatMap {

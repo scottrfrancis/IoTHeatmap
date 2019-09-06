@@ -164,6 +164,8 @@ class Dashboard2 extends Component {
     if (this.props.topic !== undefined) {
       const parts = this.props.topic.split("/")
       this.setupSubscription(parts[parts.length - 1])
+    } else if (this.props.thingName !== undefined) {
+      this.setupSubscription(this.props.thingName)
     }
   }
 

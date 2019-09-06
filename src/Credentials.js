@@ -48,7 +48,7 @@ class Credentials extends Component {
         <Button size="sm" type="button" onClick={this.showCreds}>Show Credentials</Button>)
         ||
         <Col sm={8}>
-          <h3>Credentials and Login Data</h3>
+          <h3>Credentials and Login Data for {this.props.username}</h3>
           <ReactMarkdown
             className={'Credentials'}
             source={this.state.data} />
