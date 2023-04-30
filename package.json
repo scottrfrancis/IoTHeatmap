@@ -19,7 +19,7 @@
     "react-pdf": "^4.0.5",
     "react-qr-reader": "^2.2.1",
     "react-qr-scanner": "0.0.8",
-    "react-scripts": "2.1.8",
+    "react-scripts": "5.0.1",
     "react-toggle-switch": "^3.0.4"
   },
   "scripts": {
